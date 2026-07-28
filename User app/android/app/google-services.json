@@ -12,7 +12,20 @@
           "package_name": "com.yumpass.ai"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "41006756666-2gkh1kggrli3k3b37pb1ioij11jqhdsg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yumpass.ai",
+            "certificate_hash": "5610dea173620248290bc159b0dd3b3311febfde"
+          }
+        },
+        {
+          "client_id": "41006756666-csf23bpsb3taof3paunohejvtna9gm84.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDDir0JYPP52n3WDpNRwy8UqvzPCsVVbKY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "41006756666-csf23bpsb3taof3paunohejvtna9gm84.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "41006756666-kcgt20hjlpq8e5st8aunj1rtal31s8fg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yumpass.ai"
+              }
+            }
+          ]
         }
       }
     }
