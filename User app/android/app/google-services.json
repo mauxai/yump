@@ -1,59 +1,26 @@
 {
   "project_info": {
-    "project_number": "689973750512",
-    "project_id": "test-project-daf47",
-    "storage_bucket": "test-project-daf47.firebasestorage.app"
+    "project_number": "41006756666",
+    "project_id": "yumpass-ai",
+    "storage_bucket": "yumpass-ai.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:689973750512:android:6da4de6d547a5f1befb035",
+        "mobilesdk_app_id": "1:41006756666:android:7b45993aed462b0cdd5603",
         "android_client_info": {
           "package_name": "com.yumpass.ai"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "689973750512-6to8usn1tp2sje2e4cht0uj9pufal9ii.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.yumpass.ai",
-            "certificate_hash": "16126f497c831fa8c373d42c109ad0f7803b1406"
-          }
-        },
-        {
-          "client_id": "689973750512-7ole3ltn9c6e6m4f233ud5rk2rjs7qjq.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.yumpass.ai",
-            "certificate_hash": "37ed5f05c4baf355589bb8b77deb51a9b7224224"
-          }
-        },
-        {
-          "client_id": "689973750512-3v0nb2d1e02455uub8dmd8ci8laatjs6.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBh-jlZ1RHXa6Fkg99m3bGRVjfYN5xXhso"
+          "current_key": "AIzaSyDDir0JYPP52n3WDpNRwy8UqvzPCsVVbKY"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "689973750512-3v0nb2d1e02455uub8dmd8ci8laatjs6.apps.googleusercontent.com",
-              "client_type": 3
-            },
-            {
-              "client_id": "689973750512-n48dnbsmdhp679ou9cm4uqfgmcpv20go.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.yumpass.ai"
-              }
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
