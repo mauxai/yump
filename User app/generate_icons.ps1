@@ -1,6 +1,6 @@
 Add-Type -AssemblyName System.Drawing
 
-$srcPath = "C:\Users\deept\.gemini\antigravity-ide\brain\bc823b7d-4b3e-4a4a-a356-9e02b5a8ff43\media__1785150787570.jpg"
+$srcPath = "C:\Users\deept\.gemini\antigravity\brain\2077544f-d205-42f1-9bcc-15b99193e1ba\.user_uploaded\media__1785240580012.jpg"
 $baseDir = "c:\website\Yumpass\6amstudio-business-package-v1.0-bdjxuz\package-v1.0\User app"
 
 # Android Launcher Icons
@@ -33,6 +33,7 @@ $iosSizes = @{
     "ios\Runner\Assets.xcassets\AppIcon.appiconset\167.png" = 167
     "ios\Runner\Assets.xcassets\AppIcon.appiconset\180.png" = 180
     "ios\Runner\Assets.xcassets\AppIcon.appiconset\1024.png" = 1024
+    "assets\image\app_icon.png" = 512
 }
 
 $allTargets = $androidSizes + $iosSizes

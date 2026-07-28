@@ -34,15 +34,26 @@ export async function installGate(req: NextRequest): Promise<NextResponse | null
   if (pathname.startsWith("/api/install")) return null;
 
   if (!installedCache) {
+    const port = process.env.PORT || "3000";
+    const statusUrl = `http://127.0.0.1:${port}/api/install/status`;
     try {
-      const res = await fetch(new URL("/api/install/status", req.nextUrl.origin), {
+      const res = await fetch(statusUrl, {
         headers: { accept: "application/json" },
         cache: "no-store",
       });
       const data = (await res.json()) as { installed?: boolean };
       installedCache = data.installed === true;
     } catch {
-      installedCache = false;
+      try {
+        const res = await fetch(new URL("/api/install/status", req.nextUrl.origin), {
+          headers: { accept: "application/json" },
+          cache: "no-store",
+        });
+        const data = (await res.json()) as { installed?: boolean };
+        installedCache = data.installed === true;
+      } catch {
+        installedCache = false;
+      }
     }
   }
 

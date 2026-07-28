@@ -51,10 +51,6 @@ export async function AuthShell({ children }: { children: ReactNode }) {
         {/* Top Header */}
         <div className="relative z-10 flex items-center justify-between">
           <Brand brand={brand} />
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-accent/10 text-accent border border-accent/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-            v{publicEnv.APP_VERSION}
-          </span>
         </div>
 
         {/* Middle Feature Showcase */}
