@@ -10,6 +10,24 @@ $androidSizes = @{
     "android\app\src\main\res\mipmap-xhdpi\ic_launcher.png" = 96
     "android\app\src\main\res\mipmap-xxhdpi\ic_launcher.png" = 144
     "android\app\src\main\res\mipmap-xxxhdpi\ic_launcher.png" = 192
+
+    "android\app\src\main\res\mipmap-mdpi\ic_launcher_adaptive_fore.png" = 108
+    "android\app\src\main\res\mipmap-hdpi\ic_launcher_adaptive_fore.png" = 162
+    "android\app\src\main\res\mipmap-xhdpi\ic_launcher_adaptive_fore.png" = 216
+    "android\app\src\main\res\mipmap-xxhdpi\ic_launcher_adaptive_fore.png" = 324
+    "android\app\src\main\res\mipmap-xxxhdpi\ic_launcher_adaptive_fore.png" = 432
+
+    "android\app\src\main\res\mipmap-mdpi\ic_launcher_adaptive_back.png" = 108
+    "android\app\src\main\res\mipmap-hdpi\ic_launcher_adaptive_back.png" = 162
+    "android\app\src\main\res\mipmap-xhdpi\ic_launcher_adaptive_back.png" = 216
+    "android\app\src\main\res\mipmap-xxhdpi\ic_launcher_adaptive_back.png" = 324
+    "android\app\src\main\res\mipmap-xxxhdpi\ic_launcher_adaptive_back.png" = 432
+}
+
+# Remove anydpi-v26 launcher xml if it overrides standard launcher icon
+$anyDpiXml = Join-Path $baseDir "android\app\src\main\res\mipmap-anydpi-v26\ic_launcher.xml"
+if (Test-Path $anyDpiXml) {
+    Remove-Item $anyDpiXml -Force
 }
 
 # iOS AppIcon Set
