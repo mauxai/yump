@@ -1,0 +1,71 @@
+{
+  "name": "6amstudio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e .env.development -- next dev",
+    "build": "dotenv -e .env.production -- prisma generate && next build",
+    "start": "dotenv -e .env.production -- next start",
+    "lint": "next lint",
+    "db:push": "dotenv -e .env.development -- prisma db push",
+    "db:fresh": "dotenv -e .env.development -- tsx scripts/db-fresh.ts",
+    "db:studio": "dotenv -e .env.development -- prisma studio",
+    "db:seed": "dotenv -e .env.development -- prisma db seed",
+    "db:reset": "dotenv -e .env.development -- prisma migrate reset --force",
+    "seed:gateways": "dotenv -e .env.development -- tsx prisma/seeds/gateways.ts",
+    "seed:stripe": "dotenv -e .env.development -- tsx prisma/seeds/run.ts stripe",
+    "seed:razorpay": "dotenv -e .env.development -- tsx prisma/seeds/run.ts razorpay",
+    "seed:twilio": "dotenv -e .env.development -- tsx prisma/seeds/run.ts twilio",
+    "seed:prompts": "dotenv -e .env.development -- tsx prisma/seeds/run.ts prompts",
+    "seed:effects": "dotenv -e .env.development -- tsx prisma/seeds/run.ts effects",
+    "seed:mail-templates": "dotenv -e .env.development -- tsx prisma/seeds/run.ts mail-templates",
+    "seed:install": "dotenv -e .env.development -- tsx prisma/seeds/installation.seed.ts",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seeds/installation.seed.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^3.0.65",
+    "@ai-sdk/openai": "^3.0.54",
+    "@aws-sdk/client-s3": "^3.1041.0",
+    "@prisma/client": "^5.22.0",
+    "@types/nodemailer": "^8.0.0",
+    "@vitalets/google-translate-api": "^9.2.1",
+    "ai": "^6.0.169",
+    "bcryptjs": "^2.4.3",
+    "firebase": "^12.13.0",
+    "firebase-admin": "^13.10.0",
+    "lucide-react": "^1.14.0",
+    "next": "14.2.35",
+    "next-auth": "5.0.0-beta.25",
+    "nodemailer": "^9.0.0",
+    "openai": "^6.35.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^3.8.1",
+    "sharp": "^0.34.5",
+    "stripe": "^22.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "dotenv-cli": "^11.0.0",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "14.2.33",
+    "postcss": "^8.5.10",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.13",
+    "tsx": "^4.21.0",
+    "typescript": "^5.6.3"
+  },
+  "overrides": {
+    "postcss": "^8.5.10",
+    "uuid": "^11.1.1",
+    "nodemailer": "^9.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+model AdminAudit {
+  id           String   @id @default(cuid())
+  actorAdminId String   @map("actor_admin_id")
+  action       String
+  targetType   String?  @map("target_type") // "user" | "project" | null
+  targetId     String?  @map("target_id")
+  ip           String?
+  before       Json?    @map("before_state")
+  after        Json?    @map("after_state")
+  meta         Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([actorAdminId])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@map("admin_audits")
+}

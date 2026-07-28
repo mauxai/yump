@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Colors are injected by src/config/theme.ts via the root layout <style> tag.
+   To change any color, edit that file — do not add color vars here. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font-family: "Inter", -apple-system, system-ui, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--fg-0);
+}
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-2);
+  border-radius: 10px;
+  border: 2px solid var(--bg-0);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-3);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes toastIn {
+  from { transform: translateX(10px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+/* AI generating overlay animations */
+@keyframes ai-scan {
+  0%   { top: -2px; opacity: 0; }
+  4%   { opacity: 1; }
+  96%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes ai-ring {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+@keyframes ai-ring2 {
+  0%   { transform: scale(0.6); opacity: 0.45; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes ai-orb-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.9; }
+  50%       { transform: scale(1.18); opacity: 1; }
+}
+@keyframes ai-corner {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+@keyframes ai-grid-fade {
+  0%, 100% { opacity: 0.035; }
+  50%       { opacity: 0.09; }
+}
+@keyframes ai-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ai-bar {
+  0%   { width: 0%; }
+  75%  { width: 88%; }
+  100% { width: 100%; }
+}
+@keyframes ai-dot {
+  0%, 80%, 100% { transform: scale(0); opacity: 0; }
+  40%            { transform: scale(1); opacity: 1; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.animate-slide-in-right { animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1); }

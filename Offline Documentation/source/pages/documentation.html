@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6amStudio — Full Documentation</title>
+  <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('6amstudio-docs-theme')||'dark');}catch(e){}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/docs.css" />
+  <link rel="icon" type="image/png" sizes="120x120" href="../assets/images/favicon-120.png" />
+  <link rel="icon" type="image/png" sizes="80x80" href="../assets/images/favicon-80.png" />
+  <link rel="icon" type="image/png" sizes="60x60" href="../assets/images/favicon-60.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="../assets/images/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="../assets/images/6amstudio.png" />
+</head>
+<body>
+
+<div class="scroll-progress"><div class="scroll-progress-bar"></div></div>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<header class="navbar">
+  <a class="brand" href="../../index.html">
+    <img class="brand-logo brand-logo-dark" src="../assets/images/6amimage_full_logo_dark.png" alt="6amStudio" />
+    <img class="brand-logo brand-logo-light" src="../assets/images/6amimage_full_logo_light.png" alt="6amStudio" />
+    <span class="brand-sub">Docs</span>
+  </a>
+
+  <nav>
+    <a href="../../index.html">Home</a>
+    <a href="documentation.html" class="active">Documentation</a>
+  </nav>
+
+  <div class="nav-actions">
+    <button class="btn-icon theme-toggle" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    <button class="btn-icon menu-toggle" title="Toggle menu" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <div class="sidebar-search">
+      <input id="search" type="text" placeholder="Search sections…  ( / )" autocomplete="off" />
+    </div>
+
+    <span class="toc-label">Overview</span>
+    <ul class="toc">
+      <li><a href="#introduction">Introduction</a></li>
+      <li><a href="#system-features">System Features</a></li>
+      <li>
+        <ul class="toc toc-sub">
+          <li><a href="#feature-editor">AI Editor</a></li>
+          <li><a href="#feature-user">User App</a></li>
+          <li><a href="#feature-admin">Admin Panel</a></li>
+        </ul>
+      </li>
+      <li><a href="#tech-stack">Tech Stack</a></li>
+    </ul>
+
+    <span class="toc-label">Setup</span>
+    <ul class="toc">
+      <li><a href="#prerequisites">Server Requirements</a></li>
+      <li><a href="#quick-start">Quick Start</a></li>
+      <li><a href="#installation-process">Installation Process</a></li>
+      <li>
+        <ul class="toc toc-sub">
+          <li><a href="#install-env">Before You Build</a></li>
+          <li><a href="#install-wizard">The Install Wizard</a></li>
+          <li><a href="#install-post">After Installation</a></li>
+        </ul>
+      </li>
+      <li><a href="#environment-reference">Environment Reference</a></li>
+    </ul>
+
+    <span class="toc-label">Configuration</span>
+    <ul class="toc">
+      <li><a href="#configuration">Admin Configuration</a></li>
+      <li>
+        <ul class="toc toc-sub">
+          <li><a href="#config-models">AI Models</a></li>
+          <li><a href="#config-smtp">SMTP &amp; Mail Templates</a></li>
+          <li><a href="#config-payment">Payment Gateways</a></li>
+          <li><a href="#config-oauth">Google OAuth</a></li>
+          <li><a href="#config-firebase">Firebase</a></li>
+          <li><a href="#config-branding">Branding &amp; Business</a></li>
+          <li><a href="#config-storage">General &amp; Storage</a></li>
+        </ul>
+      </li>
+      <li><a href="#localization">Localization</a></li>
+    </ul>
+
+    <span class="toc-label">Mobile App</span>
+    <ul class="toc">
+      <li><a href="#mobile-app">Overview</a></li>
+      <li><a href="#app-mandatory">Mandatory Setup</a></li>
+      <li>
+        <ul class="toc toc-sub">
+          <li><a href="#app-name">App Name</a></li>
+          <li><a href="#app-icon">App Icon</a></li>
+          <li><a href="#app-base-url">Base URL</a></li>
+          <li><a href="#app-package">App Package / ID</a></li>
+          <li><a href="#app-firebase">Firebase Push</a></li>
+        </ul>
+      </li>
+      <li><a href="#app-customisation">Customisation</a></li>
+      <li>
+        <ul class="toc toc-sub">
+          <li><a href="#app-language">Language</a></li>
+          <li><a href="#app-color">App Color</a></li>
+          <li><a href="#app-font">App Font</a></li>
+          <li><a href="#app-sound">Notification Sound</a></li>
+        </ul>
+      </li>
+      <li><a href="#app-google-login">Google Login</a></li>
+      <li><a href="#app-build">Build &amp; Release</a></li>
+    </ul>
+
+    <span class="toc-label">Operations</span>
+    <ul class="toc">
+      <li><a href="#deployment">Deployment</a></li>
+      <li><a href="#rest-api">REST API</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#customization">Customization</a></li>
+      <li><a href="#support">Help &amp; Support</a></li>
+    </ul>
+  </aside>
+
+  <!-- ============================================================
+       CONTENT
+       ============================================================ -->
+  <main class="content">
+
+    <h1>6amStudio Documentation</h1>
+    <p class="lede">
+      6amStudio is a self-hosted, AI-powered image editing platform. Users upload images and
+      transform them with natural-language prompts, one-click effects, and reusable templates —
+      powered by Google Gemini and OpenAI image models. A credit-based billing system, a full
+      admin panel, and a documented REST API are built in.
+    </p>
+
+    <!-- ================================================== -->
+    <h2 id="introduction">Introduction</h2>
+
+    <p>
+      The product ships as a single Next.js 14 application backed by a MySQL database.
+      One process serves three surfaces:
+    </p>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Surface</th><th>URL</th><th>Audience</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>User App</strong></td>
+          <td><code>/</code></td>
+          <td>End users — dashboard, AI editor, projects, gallery, billing, notifications, settings</td>
+        </tr>
+        <tr>
+          <td><strong>Admin Panel</strong></td>
+          <td><code>/admin</code></td>
+          <td>Operators — user management, plans, AI models, content libraries, integrations, audit log</td>
+        </tr>
+        <tr>
+          <td><strong>REST API</strong></td>
+          <td><code>/api/v1</code></td>
+          <td>Developers — JWT-authenticated API with an OpenAPI specification</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      Installation is handled by a built-in <strong>web install wizard</strong>: until setup
+      completes, every request is redirected to <code>/install</code>, where the buyer connects
+      a database, activates the purchase code, and creates the super admin account — no manual
+      database imports or config-file editing required.
+    </p>
+
+    <!-- ================================================== -->
+    <h2 id="system-features">System Features</h2>
+
+    <h3 id="feature-editor">AI Editor</h3>
+    <ul>
+      <li><strong>Prompt-based editing</strong> — describe a change in natural language and the selected AI model renders it.</li>
+      <li><strong>Multiple AI models</strong> — Google Gemini and OpenAI image models run side by side; each model is added from the admin panel with its own API key and per-use credit cost, and one model is marked as the default.</li>
+      <li><strong>Effect presets</strong> — one-click, admin-curated effects grouped by color-coded categories, each backed by a prompt template.</li>
+      <li><strong>Templates</strong> — a gallery of pre-built scene templates with preview images; usage of each template is tracked.</li>
+      <li><strong>Suggested prompts</strong> — quick-start prompt chips, editable from the admin panel.</li>
+      <li><strong>Edit history tree</strong> — every generation is stored as a node with its parent, so users can branch and step back through versions.</li>
+      <li><strong>Sketch overlay</strong> — draw on the canvas to guide the model, with a configurable brush color.</li>
+      <li><strong>Credit awareness</strong> — the editor displays the user's remaining credits and the cost of the selected model before generating.</li>
+    </ul>
+
+    <h3 id="feature-user">User App</h3>
+    <ul>
+      <li><strong>Authentication</strong> — email/password registration and login, optional Google sign-in, and a forgot-password flow with an emailed one-time code.</li>
+      <li><strong>Dashboard</strong> — recent projects and credit balance at a glance.</li>
+      <li><strong>Projects</strong> — create projects from uploaded images; browse, search, and manage them.</li>
+      <li><strong>Gallery</strong> — all generated images across projects in one filterable view.</li>
+      <li><strong>History &amp; activity</strong> — a searchable timeline of edits, project creations, and purchases.</li>
+      <li><strong>Billing</strong> — credit plans, gateway checkout (Stripe built in), and a filterable transaction history.</li>
+      <li><strong>Notifications</strong> — an in-app notification center, with optional Firebase Cloud Messaging push notifications.</li>
+      <li><strong>Settings</strong> — profile, avatar, password, and billing management.</li>
+      <li><strong>Free signup credits</strong> — new accounts receive a configurable number of free credits.</li>
+      <li><strong>Light &amp; dark themes</strong> and full <strong>multi-language</strong> support including RTL layouts.</li>
+    </ul>
+
+    <h3 id="feature-admin">Admin Panel</h3>
+    <p>The admin panel at <code>/admin</code> has its own login (<code>/admin/login</code>) and account system, separate from end-user accounts.</p>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Section</th><th>What it does</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Dashboard</strong></td><td>Key metrics and charts — users, revenue, edits, plan sales.</td></tr>
+        <tr><td><strong>Users</strong></td><td>Search users, view detail, suspend accounts, adjust credit balances, inspect projects.</td></tr>
+        <tr><td><strong>Projects</strong></td><td>Browse and manage all user projects.</td></tr>
+        <tr><td><strong>Transactions</strong></td><td>Every payment with status, gateway reference, and credits granted.</td></tr>
+        <tr><td><strong>Plans</strong></td><td>Create credit plans — name, credits, price, active and "recommended" flags.</td></tr>
+        <tr><td><strong>AI Models</strong></td><td>Register Gemini/OpenAI models with API keys, per-use credit cost, default selection.</td></tr>
+        <tr><td><strong>Effects</strong></td><td>Manage the effect-preset library — prompt, icon, category, color, drag-to-reorder.</td></tr>
+        <tr><td><strong>Templates</strong></td><td>Manage scene templates and their categories, preview images, and ordering.</td></tr>
+        <tr><td><strong>Prompts</strong></td><td>Edit the suggested-prompt chips shown in the editor.</td></tr>
+        <tr><td><strong>Mail Templates</strong></td><td>Edit transactional email HTML with variable placeholders, and preview-send them.</td></tr>
+        <tr><td><strong>SMTP</strong></td><td>Outgoing mail server credentials with a test-send button.</td></tr>
+        <tr><td><strong>Third-party</strong></td><td>Payment gateways, Google OAuth, and Firebase configuration.</td></tr>
+        <tr><td><strong>Branding</strong></td><td>App name, slogan, logo, favicon, and theme colors — applied live, no rebuild.</td></tr>
+        <tr><td><strong>Business</strong></td><td>Free-signup-credit policy and related commercial settings.</td></tr>
+        <tr><td><strong>Languages</strong></td><td>Add languages, set the default, mark RTL direction, enable/disable.</td></tr>
+        <tr><td><strong>Settings</strong></td><td>General platform settings — locale, currency, storage driver.</td></tr>
+        <tr><td><strong>Audit Log</strong></td><td>A trail of admin actions with actor, target, before/after state, and IP.</td></tr>
+        <tr><td><strong>Profile</strong></td><td>The signed-in admin's own name, avatar, and password.</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================================== -->
+    <h2 id="tech-stack">Tech Stack</h2>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Layer</th><th>Technology</th><th>Version</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Framework</td><td>Next.js (App Router)</td><td>14.2</td></tr>
+        <tr><td>UI</td><td>React + Tailwind CSS</td><td>18.3 / 3.4</td></tr>
+        <tr><td>Language</td><td>TypeScript</td><td>5.6</td></tr>
+        <tr><td>Database</td><td>MySQL via Prisma ORM</td><td>Prisma 5.22</td></tr>
+        <tr><td>Authentication</td><td>Auth.js (next-auth)</td><td>5.0</td></tr>
+        <tr><td>AI</td><td>Vercel AI SDK — Google Gemini &amp; OpenAI providers</td><td>6.0</td></tr>
+        <tr><td>Payments</td><td>Stripe SDK (extensible gateway registry)</td><td>22.x</td></tr>
+        <tr><td>Email</td><td>Nodemailer (SMTP)</td><td>9.x</td></tr>
+        <tr><td>Image processing</td><td>sharp</td><td>0.34</td></tr>
+        <tr><td>Push notifications</td><td>Firebase Cloud Messaging (optional)</td><td>firebase 12 / firebase-admin 13</td></tr>
+        <tr><td>Charts</td><td>Recharts</td><td>3.x</td></tr>
+        <tr><td>Validation</td><td>Zod</td><td>3.x</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ================================================== -->
+    <h2 id="prerequisites">Server Requirements</h2>
+
+    <p>
+      The install wizard verifies every requirement automatically in its first step, so a
+      misconfigured server is caught before anything is written.
+    </p>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Requirement</th><th>Minimum</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Node.js</strong></td>
+          <td>18.x or newer</td>
+          <td>Checked by the wizard. LTS releases recommended.</td>
+        </tr>
+        <tr>
+          <td><strong>MySQL</strong></td>
+          <td>5.7+ / 8.0+</td>
+          <td>Reachable from the app server; default port 3306. The wizard can create the database if it doesn't exist.</td>
+        </tr>
+        <tr>
+          <td><strong>Writable directories</strong></td>
+          <td>project root, <code>public/storage</code></td>
+          <td>The root stores env files written during install; <code>public/storage</code> holds generated images (auto-created if missing).</td>
+        </tr>
+        <tr>
+          <td><strong>Dependencies</strong></td>
+          <td><code>npm install</code> completed</td>
+          <td>Including dev dependencies — the wizard runs the Prisma CLI from <code>node_modules</code> to create the schema.</td>
+        </tr>
+        <tr>
+          <td><strong>sharp</strong></td>
+          <td>loads on the host platform</td>
+          <td>Installed with dependencies; on platform mismatch, reinstall on the server (see <a href="#troubleshooting">Troubleshooting</a>).</td>
+        </tr>
+        <tr>
+          <td><strong>Memory</strong></td>
+          <td>1&nbsp;GB+ recommended</td>
+          <td>Image processing with sharp benefits from headroom.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <span class="co-icon">ℹ️</span>
+      <p>
+        <strong>External services you'll want ready:</strong> at least one AI provider API key
+        (Google AI Studio or OpenAI), SMTP credentials for transactional email, and a Stripe
+        account if you plan to sell credit plans. All three are configured later in the admin
+        panel — none are needed to install.
+      </p>
+    </div>
+
+    <!-- ================================================== -->
+    <h2 id="quick-start">Quick Start</h2>
+
+    <p>From a fresh server to a running platform:</p>
+
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Copy the server folder</strong>
+          Place the <code>Admin and Web Install V1.0</code> folder into your web
+          directory and work inside it — that folder is the server.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Set your domain</strong>
+          Open <code>.env.production</code> and set <code>NEXT_PUBLIC_APP_URL</code> to the URL
+          the app will be served from. Don't add a <code>DATABASE_URL</code> line — it's absent
+          from the template by design — and leave <code>AUTH_SECRET</code> empty; both are filled
+          automatically.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Install &amp; build</strong>
+        </div>
+      </li>
+    </ol>
+
+<pre class="code"><span class="k">npm</span> install
+<span class="k">npm</span> run build</pre>
+
+    <ol class="steps" start="4">
+      <li>
+        <div class="step-body">
+          <strong>Start the server</strong>
+        </div>
+      </li>
+    </ol>
+
+<pre class="code"><span class="c"># direct</span>
+<span class="k">npm</span> run start
+
+<span class="c"># or with PM2 (recommended for production)</span>
+<span class="k">pm2</span> start ecosystem.config.js
+<span class="k">pm2</span> startup   <span class="c"># once per server: boot PM2 with the OS (run the sudo command it prints)</span>
+<span class="k">pm2</span> save      <span class="c"># snapshot the process list so it's resurrected after a reboot</span></pre>
+
+    <ol class="steps" start="5">
+      <li>
+        <div class="step-body">
+          <strong>Open your domain</strong>
+          Every URL redirects to <code>/install</code>. Walk through the wizard, then sign in at
+          <code>/admin/login</code> with the super admin account you created.
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout warn">
+      <span class="co-icon">⚠️</span>
+      <p>
+        <strong>Set <code>NEXT_PUBLIC_APP_URL</code> before building.</strong> Values prefixed
+        <code>NEXT_PUBLIC_</code> are embedded into the compiled output at build time. If you change
+        your domain later, update the value and run <code>npm run build</code> again — otherwise
+        email links and payment redirects will keep pointing at the old URL.
+      </p>
+    </div>
+
+    <!-- ================================================== -->
+    <h2 id="installation-process">Installation Process</h2>
+
+    <p>
+      Installation is enforced by middleware: until the wizard completes, all pages redirect to
+      <code>/install</code> and API routes answer <code>503</code>. Once finished, the wizard seals
+      itself permanently — visiting <code>/install</code> on an installed copy redirects home.
+    </p>
+
+    <h3 id="install-env">Before you build</h3>
+
+    <p>The shipped env templates contain only a handful of keys. Two of them matter before the build:</p>
+
+<pre class="code"><span class="c"># --- App ---</span>
+<span class="v">NEXT_PUBLIC_APP_NAME</span>=<span class="s">"6amStudio"</span>
+<span class="v">NEXT_PUBLIC_APP_VERSION</span>=<span class="s">"1.0"</span>
+<span class="c"># Hosted URL — set before `npm run build` (used in email links &amp; payment redirects).</span>
+<span class="v">NEXT_PUBLIC_APP_URL</span>=<span class="s">"https://images.example.com"</span>
+<span class="c"># Optional CDN/storage origin for uploaded files — empty = NEXT_PUBLIC_APP_URL.</span>
+<span class="v">NEXT_PUBLIC_STORAGE_URL</span>=
+
+<span class="c"># --- Managed automatically by the installer — do not set DATABASE_URL by hand ---</span>
+<span class="c"># The wizard's database step writes DATABASE_URL here. Leave it ABSENT, not</span>
+<span class="c"># blank: a blank value is loaded into the process at boot and shadows the value</span>
+<span class="c"># the installer writes, so the app can't reach the database afterwards.</span>
+<span class="c"># AUTH_SECRET is generated on first boot if empty.</span>
+<span class="v">AUTH_SECRET</span>=</pre>
+
+    <ul>
+      <li><code>DATABASE_URL</code> is <strong>not</strong> in the template at all — leave it out. The wizard's database step writes it into every env file present, atomically. Don't add a blank <code>DATABASE_URL=</code> line yourself: an empty value is loaded at boot and shadows the one the installer writes, leaving the app unable to reach the database.</li>
+      <li><code>AUTH_SECRET</code> (the session-signing key) is generated uniquely for your deployment at first server boot. No two installations share a key. If you prefer to supply your own, set any value and it will be respected.</li>
+    </ul>
+
+    <h3 id="install-wizard">The install wizard, step by step</h3>
+
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Server requirements</strong>
+          The wizard checks the Node.js version, directory permissions, the Prisma CLI, and the
+          sharp image library. Every check must pass before you can continue; each failing row
+          explains how to fix it.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Database</strong>
+          Enter MySQL host, port, database name, username, and password. The wizard tests the
+          connection, creates the database if it doesn't exist, builds the schema, and seeds
+          system data (settings, effects, prompts, mail templates, the Stripe gateway record).
+          It then writes <code>DATABASE_URL</code> into your env files and switches the running
+          process over — no restart needed mid-wizard.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>License activation</strong>
+          Enter your marketplace username and purchase code. The license server verifies the
+          code for your domain. Installs on <code>localhost</code> skip this check, so you can
+          evaluate on a development machine without consuming an activation.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Super admin</strong>
+          Create the first administrator (name, email, password of at least 8 characters).
+          This finalizes the installation and unlocks the application.
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="co-icon">🛑</span>
+      <p>
+        <strong>Existing data is never erased silently.</strong> If the target database already
+        contains tables, the wizard stops with a warning showing the table count, and you choose:
+        erase everything in that database, or go back and point at a different one. The wipe only
+        happens after your explicit confirmation.
+      </p>
+    </div>
+
+    <h3 id="install-post">After installation</h3>
+    <ul>
+      <li>The wizard hands you a link to <code>/admin/login</code> — sign in with the super admin account from step 4.</li>
+      <li>The only account in the system is that super admin. End users register themselves; there are no demo accounts to delete.</li>
+      <li>Head to <a href="#configuration">Admin Configuration</a> to connect AI models, SMTP, and payments — the platform is installed, but it can't generate images or send email until keys are added.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="environment-reference">Environment Reference</h2>
+
+    <p>
+      6amStudio deliberately keeps the env surface tiny — nearly all configuration lives in the
+      database and is edited from the admin panel. The same keys exist in
+      <code>.env.development</code> (used by <code>npm run dev</code>) and
+      <code>.env.production</code> (used by <code>npm run build</code> / <code>npm run start</code>).
+    </p>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Key</th><th>Who sets it</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>NEXT_PUBLIC_APP_URL</code></td>
+          <td><strong>You, before building</strong></td>
+          <td>The public URL of the deployment. Used in email links, payment redirects, and the OAuth redirect-URL display. Baked in at build time.</td>
+        </tr>
+        <tr>
+          <td><code>NEXT_PUBLIC_STORAGE_URL</code></td>
+          <td>You (optional)</td>
+          <td>A CDN or separate origin for serving uploaded files. Leave empty to serve them from <code>NEXT_PUBLIC_APP_URL</code>.</td>
+        </tr>
+        <tr>
+          <td><code>NEXT_PUBLIC_APP_NAME</code> / <code>NEXT_PUBLIC_APP_VERSION</code></td>
+          <td>Pre-set</td>
+          <td>Display name and version string.</td>
+        </tr>
+        <tr>
+          <td><code>NEXT_PUBLIC_IS_DEVELOPMENT_MODE</code></td>
+          <td>Pre-set</td>
+          <td><code>true</code> in development only — exposes the interactive API docs at <code>/api-docs</code>.</td>
+        </tr>
+        <tr>
+          <td><code>DATABASE_URL</code></td>
+          <td><strong>Install wizard</strong></td>
+          <td>MySQL connection string. Written automatically during the wizard's database step. Not present in the shipped template — leave it out entirely (absent, not blank) in a fresh copy.</td>
+        </tr>
+        <tr>
+          <td><code>AUTH_SECRET</code></td>
+          <td><strong>First server boot</strong></td>
+          <td>Session-signing key, generated uniquely per deployment. Leave empty; set a value only if you want to supply your own.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <span class="co-icon">🔑</span>
+      <p>
+        <strong>Where are the API keys?</strong> AI provider keys, SMTP credentials, payment
+        gateway keys, OAuth client secrets, and Firebase config are all stored in the database
+        and managed from the admin panel — they never live in env files, so updating them never
+        requires a rebuild or restart.
+      </p>
+    </div>
+
+    <!-- ================================================== -->
+    <h2 id="configuration">Admin Configuration</h2>
+
+    <p>
+      After installing, work through these sections in the admin panel. The platform is usable
+      the moment AI models are connected; the rest can follow at your pace.
+    </p>
+
+    <h3 id="config-models">AI Models <span class="badge post">required</span></h3>
+    <p><strong>Admin → AI Models</strong></p>
+    <ul>
+      <li>Add one entry per model you want to offer. Choose the provider (<strong>Google</strong> or <strong>OpenAI</strong>), pick the model, and paste the provider API key.</li>
+      <li>Get keys from <a href="https://aistudio.google.com" target="_blank" rel="noreferrer">Google AI Studio</a> (Gemini image models) or the <a href="https://platform.openai.com" target="_blank" rel="noreferrer">OpenAI platform</a> (GPT Image / DALL·E).</li>
+      <li>Set a <strong>credit cost</strong> per model — this is how many credits one generation deducts from the user. Expensive models can simply cost more credits.</li>
+      <li>Mark one model as the <strong>default</strong>; users can switch models in the editor.</li>
+      <li>Stored keys are masked in the UI after saving. Deactivate a model to remove it from the editor without deleting it.</li>
+    </ul>
+
+    <h3 id="config-smtp">SMTP &amp; Mail Templates</h3>
+    <p><strong>Admin → SMTP</strong> and <strong>Admin → Mail Templates</strong></p>
+    <ul>
+      <li>Enter your mail server's host, port, username, password, and from-address, then use the <strong>test send</strong> to verify delivery.</li>
+      <li>SMTP powers password-reset codes, welcome emails, and purchase receipts. Without it, users cannot complete the forgot-password flow.</li>
+      <li>Every outgoing email is built from an editable HTML template. Templates support placeholders like <code>{{brand_name}}</code>, <code>{{user_name}}</code>, and <code>{{app_url}}</code>, replaced at send time, and each template can be previewed before saving.</li>
+    </ul>
+
+    <h3 id="config-payment">Payment Gateways</h3>
+    <p><strong>Admin → Third-party → Payment</strong></p>
+    <ul>
+      <li><strong>Stripe</strong> ships ready to configure: enter the secret API key, choose live or test mode, and optionally set a display title and logo for the checkout button.</li>
+      <li>Checkout flow: the user picks a plan → is redirected to the gateway's hosted checkout → returns to the app where the session is verified server-side before credits are granted. Webhooks are received at <code>/api/billing/webhook/&lt;gateway&gt;</code>.</li>
+      <li>The gateway layer uses a registry pattern, so additional processors can be integrated by a developer without touching the billing core.</li>
+      <li>Only gateways marked active appear to users. Plans themselves are managed under <strong>Admin → Plans</strong>.</li>
+    </ul>
+
+    <h3 id="config-oauth">Google OAuth (social login)</h3>
+    <p><strong>Admin → Third-party → OAuth</strong></p>
+    <ol>
+      <li>Create an OAuth client in the <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer">Google Cloud Console</a> (type: Web application).</li>
+      <li>Register the redirect URI shown on the admin OAuth page (it is derived from your <code>NEXT_PUBLIC_APP_URL</code>).</li>
+      <li>Paste the Client ID and Client Secret into the form and enable the provider.</li>
+    </ol>
+    <p>
+      A "Continue with Google" button then appears on the login and registration pages. Accounts
+      are matched by email — an existing user signing in with Google is linked automatically.
+    </p>
+
+    <h3 id="config-firebase">Firebase (push notifications, optional)</h3>
+    <p><strong>Admin → Third-party → Firebase</strong></p>
+    <ul>
+      <li>Entirely optional — skip it and the in-app notification center still works; you only lose browser push delivery.</li>
+      <li>Server side: paste the service-account values (project ID, client email, private key) from a Firebase service-account JSON.</li>
+      <li>Client side: paste the web-app config values (API key, sender ID, app ID, …) and the VAPID public key for web push.</li>
+    </ul>
+
+    <h3 id="config-branding">Branding &amp; Business</h3>
+    <p><strong>Admin → Branding</strong> and <strong>Admin → Business</strong></p>
+    <ul>
+      <li>Branding: app name, slogan, logo, favicon, and the primary theme color for dark and light modes. Changes apply live across the whole product — login screens, editor, emails — with no rebuild.</li>
+      <li>Business: whether new signups receive free credits, and how many.</li>
+    </ul>
+
+    <h3 id="config-storage">General &amp; Storage</h3>
+    <p><strong>Admin → Settings</strong></p>
+    <ul>
+      <li>Locale defaults — country, timezone, and the currency used on plan and billing pages.</li>
+      <li><strong>Storage driver</strong> — generated images are stored on the local filesystem under <code>public/storage</code> by default and served from <code>/storage/…</code>. An S3-compatible driver is available for object storage / CDN setups; configure bucket, region, keys, and an optional public URL in the same section.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="localization">Localization</h2>
+
+    <ul>
+      <li><strong>Admin → Languages</strong> manages the language list: ISO code, display name, native name, text direction, default flag, and active state.</li>
+      <li>Right-to-left languages are fully supported — setting a language's direction to <code>rtl</code> flips the entire UI, including the editor.</li>
+      <li>Users pick their language in the app; the choice is remembered per browser. Visitors without a choice get the default language.</li>
+      <li>UI strings are served per language as message bundles, so adding a language does not require a rebuild.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="mobile-app">Mobile App</h2>
+
+    <p>
+      Alongside the web platform, 6amStudio ships a companion <strong>Flutter mobile app</strong>
+      for <strong>Android and iOS</strong>. The app talks to the same backend you installed above
+      through the <a href="#rest-api">REST API</a> — point its base URL at your domain and it serves
+      the AI editor, projects, gallery, billing, and push notifications natively on mobile.
+    </p>
+
+    <p>
+      The steps below cover personalising and shipping the app under your own brand. Files are
+      referenced relative to the Flutter project root; commands assume the
+      <a href="https://docs.flutter.dev/get-started/install" target="_blank" rel="noreferrer">Flutter
+      SDK</a> and Android Studio / Xcode are installed.
+    </p>
+
+    <div class="callout info">
+      <span class="co-icon">ℹ️</span>
+      <p>
+        <strong>Order matters.</strong> Work through <em>Mandatory Setup</em> top to bottom — in
+        particular, change the package / bundle identifier <em>before</em> setting up Firebase, since
+        Firebase configuration is tied to that identifier.
+      </p>
+    </div>
+
+    <h3 id="app-mandatory">1 · Mandatory Setup</h3>
+
+    <h4 id="app-name">1.1 Change App Name <span class="badge post">required</span></h4>
+    <p>Set the display name in all three platforms:</p>
+
+<pre class="code"><span class="c">// 1. lib/util/app_constants.dart</span>
+<span class="k">static const</span> String appName = <span class="s">'YOUR_APP_NAME'</span>;</pre>
+
+<pre class="code"><span class="c">&lt;!-- 2. android/app/src/main/AndroidManifest.xml — update the label --&gt;</span>
+&lt;application <span class="v">android:label</span>=<span class="s">"YOUR_APP_NAME"</span> ... &gt;</pre>
+
+<pre class="code"><span class="c">&lt;!-- 3. ios/Runner/Info.plist — update CFBundleName &amp; CFBundleDisplayName --&gt;</span>
+&lt;key&gt;CFBundleDisplayName&lt;/key&gt;&lt;string&gt;<span class="s">YOUR_APP_NAME</span>&lt;/string&gt;
+&lt;key&gt;CFBundleName&lt;/key&gt;&lt;string&gt;<span class="s">YOUR_APP_NAME</span>&lt;/string&gt;</pre>
+
+    <h4 id="app-icon">1.2 Change App Icon</h4>
+    <p>
+      Generate launcher icons from a single source image using
+      <a href="https://appicon.co" target="_blank" rel="noreferrer">appicon.co</a>, then drop the
+      generated assets into the native projects:
+    </p>
+    <ul>
+      <li><strong>Android</strong> — replace the generated <code>mipmap-*</code> folders into <code>android/app/src/main/res/</code>.</li>
+      <li><strong>iOS</strong> — replace the generated <code>Assets.xcassets</code> (the <code>AppIcon</code> set) into <code>ios/Runner/</code>.</li>
+    </ul>
+
+    <h4 id="app-base-url">1.3 Change Base URL <span class="badge post">required</span></h4>
+    <p>
+      Install and host your 6amStudio server first (see <a href="#installation-process">Installation
+      Process</a>), then point the app at it. Open <code>lib/util/app_constants.dart</code> and set
+      <code>baseUrl</code> to your domain:
+    </p>
+
+<pre class="code"><span class="c">// lib/util/app_constants.dart</span>
+<span class="k">static const</span> String baseUrl = <span class="s">'https://your_domain.com'</span>;</pre>
+
+    <div class="callout warn">
+      <span class="co-icon">⚠️</span>
+      <p>
+        <strong>No trailing slash.</strong> Do not put a <code>/</code> at the end of the base URL.
+        This should match the <code>NEXT_PUBLIC_APP_URL</code> of your server install.
+      </p>
+    </div>
+
+    <h4 id="app-package">1.4 Change App Package / applicationId <span class="badge post">required</span></h4>
+    <p>Give the app its own unique identifier across both platforms.</p>
+
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Find the current package name</strong>
+          Locate the existing <code>applicationId</code> in <code>android/app/build.gradle.kts</code>.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Replace it everywhere (Android Studio)</strong>
+          Right-click the project folder → <strong>Replace in Files</strong>
+          (<code>Ctrl + Shift + R</code> on Windows/Linux, <code>⌘ + Shift + R</code> on macOS).
+          Enter the existing package name in the first box, your new package name in the second,
+          then <strong>Replace All</strong>.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Match the iOS Bundle Identifier</strong>
+          Open <code>ios/Runner.xcworkspace</code> in Xcode → <strong>Runner</strong> target →
+          <strong>Signing &amp; Capabilities</strong> → set <strong>Bundle Identifier</strong> to the
+          same value.
+        </div>
+      </li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="co-icon">🛑</span>
+      <p>
+        <strong>Change the package name <em>before</em> setting up Firebase</strong> — Firebase
+        registration below binds your <code>google-services.json</code> / <code>GoogleService-Info.plist</code>
+        to this identifier.
+      </p>
+    </div>
+
+    <h4 id="app-firebase">1.5 Setup Firebase for Push Notifications</h4>
+    <p>
+      <strong>Prerequisite:</strong> change the package name first (1.4), then create a project in the
+      <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer">Firebase Console</a>.
+    </p>
+
+    <h5>Android</h5>
+    <ul>
+      <li>Add an <strong>Android app</strong> to the Firebase project using your package name.</li>
+      <li>Download <code>google-services.json</code> and replace the existing file at <code>android/app/google-services.json</code>.</li>
+      <li>Create a <strong>white PNG</strong> notification icon and place it at <code>android/app/src/main/res/drawable/notification_icon.png</code>.</li>
+    </ul>
+
+    <h5>iOS</h5>
+    <ul>
+      <li>Add an <strong>iOS app</strong> to the same Firebase project using your Bundle Identifier.</li>
+      <li>Download <code>GoogleService-Info.plist</code> and add it to <code>ios/Runner/</code> <em>through Xcode</em> so it is included in the Runner target.</li>
+      <li>For full iOS configuration, follow the
+        <a href="https://firebase.flutter.dev" target="_blank" rel="noreferrer">firebase.flutter.dev</a> documentation.</li>
+    </ul>
+
+    <div class="callout warn">
+      <span class="co-icon">⚠️</span>
+      <p>
+        <strong>Test push on a real device.</strong> Do not test push notifications on an emulator or
+        simulator.
+      </p>
+    </div>
+
+    <h3 id="app-customisation">2 · Customisation</h3>
+
+    <h4 id="app-language">2.1 Language</h4>
+
+    <p><strong>Add a new language</strong></p>
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Create the translation file</strong>
+          In <code>assets/language/</code> add a file named after the language code — e.g.
+          <code>es.json</code> for Spanish. Copy everything from <code>en.json</code> into it, then
+          translate only the text <em>after</em> each colon — never change the keys.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Register the language</strong>
+          In <code>lib/util/app_constants.dart</code>, add a <code>LanguageModel</code> to the
+          <code>languages</code> list:
+        </div>
+      </li>
+    </ol>
+
+<pre class="code"><span class="c">// lib/util/app_constants.dart</span>
+LanguageModel(
+  languageName: <span class="s">'Spanish'</span>,
+  countryCode: <span class="s">'ES'</span>,
+  languageCode: <span class="s">'es'</span>,
+),</pre>
+
+    <p style="margin-top:-4px;">Then <strong>uninstall and reinstall</strong> the app to pick up the new bundle.</p>
+
+    <ul>
+      <li><strong>Remove a language</strong> — delete its <code>LanguageModel</code> from the <code>languages</code> list.</li>
+      <li><strong>Set the default</strong> — move the desired <code>LanguageModel</code> to the <em>first</em> position in the list.</li>
+    </ul>
+
+    <h4 id="app-color">2.2 Change App Color</h4>
+    <ul>
+      <li>Open <code>lib/core/theme/app_colors.dart</code> and adjust the brand colors and gradient (<code>gradientStart</code>, <code>gradientEnd</code>, and the other accent colors).</li>
+      <li>Open <code>lib/core/theme/app_theme.dart</code> and update the <strong>light</strong> theme colors (primary, background, surface, text).</li>
+      <li>In the same file, repeat for the <strong>dark</strong> theme colors.</li>
+    </ul>
+
+    <h4 id="app-font">2.3 Change App Font</h4>
+    <ol class="steps">
+      <li>
+        <div class="step-body">
+          <strong>Add the font files</strong>
+          Download a font (e.g. from <a href="https://fonts.google.com" target="_blank" rel="noreferrer">Google Fonts</a>),
+          unzip it, and copy the <code>.ttf</code> files into <code>assets/font/</code>.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Declare it in pubspec.yaml</strong>
+          Under the <code>flutter:</code> section, add a <code>fonts:</code> entry with a family name
+          and one asset + weight per style (indentation matters in YAML):
+        </div>
+      </li>
+    </ol>
+
+<pre class="code"><span class="c"># pubspec.yaml</span>
+<span class="v">flutter</span>:
+  <span class="v">fonts</span>:
+    - <span class="v">family</span>: YourFontFamily
+      <span class="v">fonts</span>:
+        - <span class="v">asset</span>: assets/font/YourFont-Regular.ttf
+          <span class="v">weight</span>: <span class="s">400</span>
+        - <span class="v">asset</span>: assets/font/YourFont-Bold.ttf
+          <span class="v">weight</span>: <span class="s">700</span></pre>
+
+    <ol class="steps" start="3">
+      <li>
+        <div class="step-body">
+          <strong>Reference the family in code</strong>
+          Update <code>fontFamily</code> in <code>lib/core/theme/app_theme.dart</code> and
+          <code>lib/util/styles.dart</code>. The <code>family</code> value in <code>pubspec.yaml</code>
+          and <code>fontFamily</code> in code must match <em>exactly</em>, or the font won't load.
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Bundle it</strong>
+          Run <code>flutter pub get</code> so the new font is packaged into the app.
+        </div>
+      </li>
+    </ol>
+
+    <h4 id="app-sound">2.4 Change Notification Sound</h4>
+    <p>
+      <strong>Android:</strong> replace <code>android/app/src/main/res/raw/notification.mp3</code> with
+      your desired sound, keeping the filename <code>notification.mp3</code>.
+    </p>
+
+    <h3 id="app-google-login">3 · Google Login (3rd-party)</h3>
+
+    <h5>Firebase project setup</h5>
+    <p>
+      In the <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer">Firebase
+      Console</a>, open the project you created for push notifications, then go to
+      <strong>Authentication → Sign-in method → Add new provider → Google</strong>, enable it, and
+      <strong>Save</strong>.
+    </p>
+
+    <h5>Android configuration</h5>
+    <ul>
+      <li>In <strong>Project Settings → Android apps</strong>, select your user app and add the <strong>SHA-1</strong> and <strong>SHA-256</strong> fingerprints (command below).</li>
+      <li>After launch, also add the SHA keys from <strong>Google Play Console → App Integrity</strong>.</li>
+      <li>Download the updated <code>google-services.json</code> and place it in <code>android/app/</code>.</li>
+    </ul>
+
+<pre class="code"><span class="c"># get the SHA keys from the debug keystore</span>
+<span class="k">keytool</span> -list -v -keystore ~/.android/debug.keystore \
+  -alias androiddebugkey -storepass android -keypass android</pre>
+
+    <h5>iOS configuration</h5>
+    <ul>
+      <li>Get the <strong>Client ID</strong> from <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer">cloud.google.com</a> → <strong>APIs &amp; Services → Credentials → OAuth 2.0 Client IDs</strong>.</li>
+      <li>Edit <code>ios/Runner/Info.plist</code> and add the Client ID (<code>GIDClientID</code>) and its <em>reversed</em> value under <code>CFBundleURLSchemes</code>:</li>
+    </ul>
+
+<pre class="code"><span class="c">&lt;!-- ios/Runner/Info.plist --&gt;</span>
+&lt;key&gt;GIDClientID&lt;/key&gt;
+&lt;string&gt;<span class="s">YOUR_IOS_CLIENT_ID.apps.googleusercontent.com</span>&lt;/string&gt;
+&lt;key&gt;CFBundleURLTypes&lt;/key&gt;
+&lt;array&gt;
+  &lt;dict&gt;
+    &lt;key&gt;CFBundleURLSchemes&lt;/key&gt;
+    &lt;array&gt;
+      &lt;string&gt;<span class="s">com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</span>&lt;/string&gt;
+    &lt;/array&gt;
+  &lt;/dict&gt;
+&lt;/array&gt;</pre>
+
+    <h3 id="app-build">4 · Build &amp; Release</h3>
+
+    <h5>Android</h5>
+    <p>Build a release APK:</p>
+<pre class="code"><span class="k">flutter</span> build apk</pre>
+    <p>
+      The APK is generated in <code>build/app/outputs/flutter-apk/</code> as
+      <code>app-release.apk</code>. To produce smaller per-architecture APKs:
+    </p>
+<pre class="code"><span class="k">flutter</span> build apk --split-per-abi \
+  --target-platform android-arm,android-arm64,android-x64</pre>
+    <p>
+      See Flutter's <a href="https://docs.flutter.dev/deployment/android" target="_blank" rel="noreferrer">Android
+      deployment guide</a> for details.
+    </p>
+
+    <div class="callout warn">
+      <span class="co-icon">⚠️</span>
+      <p>
+        <strong>Configure release signing before publishing.</strong> By default the release build is
+        signed with the debug key (see the <code>release</code> block in
+        <code>android/app/build.gradle.kts</code>). A debug-signed build runs locally but
+        <strong>cannot be uploaded to Google Play</strong>. Set up your own keystore +
+        <code>key.properties</code> before a production release.
+      </p>
+    </div>
+
+    <h5>iOS</h5>
+    <p>
+      Apple does not allow side-loading release builds — deploy through <strong>TestFlight</strong> or
+      the <strong>App Store</strong>. Follow Flutter's
+      <a href="https://docs.flutter.dev/deployment/ios" target="_blank" rel="noreferrer">iOS deployment guide</a>
+      for complete instructions.
+    </p>
+
+    <div class="callout danger">
+      <span class="co-icon">🔒</span>
+      <p>
+        <strong>Keep secrets out of version control.</strong> Replace all placeholder values with your
+        own before publishing, and never commit <code>google-services.json</code>,
+        <code>GoogleService-Info.plist</code>, <code>key.properties</code>, or keystore files.
+      </p>
+    </div>
+
+    <!-- ================================================== -->
+    <h2 id="deployment">Deployment</h2>
+
+    <h3>Run modes</h3>
+
+<pre class="code"><span class="c"># development (loads .env.development, dev server with hot reload)</span>
+<span class="k">npm</span> run dev
+
+<span class="c"># production (loads .env.production)</span>
+<span class="k">npm</span> run build
+<span class="k">npm</span> run start     <span class="c"># serves on port 3000</span></pre>
+
+    <h3 id="deploy-pm2">PM2 (recommended)</h3>
+
+    <p>An ecosystem file ships in the project root, pre-configured for a single fork-mode instance on port 3000 with log files and a memory-restart guard:</p>
+
+<pre class="code"><span class="k">pm2</span> start ecosystem.config.js
+<span class="k">pm2</span> startup             <span class="c"># once per server: registers PM2 as a system service</span>
+<span class="k">pm2</span> save                <span class="c"># snapshot the process list for auto-resurrection on boot</span>
+<span class="k">pm2</span> logs 6amstudio       <span class="c"># tail application logs</span>
+<span class="k">pm2</span> restart 6amstudio    <span class="c"># after updates or env changes</span></pre>
+
+    <p>
+      <code>pm2 startup</code> prints a <code>sudo</code> command — run it once and PM2 will start
+      with the operating system. <code>pm2 save</code> records <em>what</em> PM2 should bring back;
+      re-run it whenever you change the process list, or the next reboot restores the old one.
+    </p>
+
+    <div class="callout warn">
+      <span class="co-icon">⚠️</span>
+      <p>
+        <strong>Run the install wizard on a single instance.</strong> Keep
+        <code>instances: 1</code> (as shipped) at least until installation completes — the wizard
+        writes env values into the running process. If you later scale with PM2 cluster mode,
+        do a full <code>pm2 restart</code> after installing so every worker boots from the
+        finalized env files.
+      </p>
+    </div>
+
+    <h3 id="deploy-nginx">Reverse proxy</h3>
+
+    <p>Point your web server at the Node process. A minimal Nginx site:</p>
+
+<pre class="code">server {
+    listen 80;
+    server_name images.example.com;
+
+    client_max_body_size 20M;   <span class="c"># uploads up to the app's 15 MB limit</span>
+
+    location / {
+        proxy_pass         http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header   Host $host;
+        proxy_set_header   X-Real-IP $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   Upgrade $http_upgrade;
+        proxy_set_header   Connection "upgrade";
+    }
+}</pre>
+
+    <p>Then add TLS (e.g. <code>certbot --nginx</code>). Remember: if the final public URL differs from what you built with, update <code>NEXT_PUBLIC_APP_URL</code> and rebuild.</p>
+
+    <h3 id="deploy-storage">File storage notes</h3>
+    <ul>
+      <li>Generated images live in <code>public/storage</code> — include this directory in your backup strategy alongside the database.</li>
+      <li>The app already sends permissive CORS headers for <code>/storage/*</code> so the editor canvas can composite stored images; no proxy configuration is needed for this.</li>
+      <li>Upload/server-action payloads are capped at 15&nbsp;MB by the application.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="rest-api">REST API</h2>
+
+    <p>
+      Every user-facing feature is backed by a versioned REST API under <code>/api/v1</code>,
+      authenticated with Bearer JWT tokens obtained from the login/register endpoints.
+    </p>
+
+    <div class="callout">
+      <span class="co-icon">📜</span>
+      <p>
+        <strong>Interactive documentation:</strong> run the app in development mode
+        (<code>NEXT_PUBLIC_IS_DEVELOPMENT_MODE=true</code>) and open <code>/api-docs</code> for a
+        browsable OpenAPI reference of every endpoint, parameter, and response shape. The docs
+        page is disabled in production builds by default.
+      </p>
+    </div>
+
+    <table class="doc-table">
+      <thead>
+        <tr><th>Group</th><th>Base path</th><th>Covers</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Auth</strong></td>
+          <td><code>/api/v1/auth/*</code></td>
+          <td>Register, login, social login, forgot/reset password with OTP verification</td>
+        </tr>
+        <tr>
+          <td><strong>User</strong></td>
+          <td><code>/api/v1/user/*</code></td>
+          <td>Profile, avatar, activity, analytics, push-token registration</td>
+        </tr>
+        <tr>
+          <td><strong>Projects</strong></td>
+          <td><code>/api/v1/projects/*</code></td>
+          <td>CRUD, thumbnails, and the edit tree</td>
+        </tr>
+        <tr>
+          <td><strong>Editor</strong></td>
+          <td><code>/api/v1/editor/*</code></td>
+          <td>Effect presets and prompt/template suggestions</td>
+        </tr>
+        <tr>
+          <td><strong>Templates</strong></td>
+          <td><code>/api/v1/templates/*</code></td>
+          <td>Template gallery, categories, usage tracking</td>
+        </tr>
+        <tr>
+          <td><strong>Billing</strong></td>
+          <td><code>/api/v1/billing/*</code></td>
+          <td>Plans, gateways, checkout, payment status, history</td>
+        </tr>
+        <tr>
+          <td><strong>Notifications</strong></td>
+          <td><code>/api/v1/notifications/*</code></td>
+          <td>List, mark read, bulk mark read</td>
+        </tr>
+        <tr>
+          <td><strong>Config</strong></td>
+          <td><code>/api/v1/config</code>, <code>/api/v1/ai/providers</code></td>
+          <td>Public app config, branding, and active AI models</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h4>Conventions</h4>
+    <ul>
+      <li>Authenticated requests send <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+      <li>List endpoints are paginated and return <code>data</code>, <code>total</code>, <code>page</code>, and <code>totalPages</code>.</li>
+      <li>Errors return an appropriate HTTP status with a JSON body of the form <code>{ "error": "…" }</code>.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="troubleshooting">Troubleshooting</h2>
+
+    <h3>Requirements step: "Prisma CLI not found"</h3>
+    <p>Dependencies were installed without dev packages. Re-run on the server:</p>
+<pre class="code"><span class="k">npm</span> install --include=dev</pre>
+
+    <h3>Requirements step: sharp fails to load</h3>
+    <p>The sharp binary was built for a different platform (common when <code>node_modules</code> was copied from another OS). Rebuild it on the server:</p>
+<pre class="code"><span class="k">npm</span> rebuild sharp
+<span class="c"># or, if that fails:</span>
+<span class="k">rm</span> -rf node_modules &amp;&amp; <span class="k">npm</span> install</pre>
+
+    <h3>Database step: connection refused / access denied</h3>
+    <ul>
+      <li>Verify the MySQL host is reachable from the app server (firewall, bind-address).</li>
+      <li>Confirm the user has privileges on the target database — and <code>CREATE</code> rights if the wizard should create it.</li>
+      <li>Special characters in passwords are handled automatically by the wizard; no manual URL-encoding needed.</li>
+    </ul>
+
+    <h3>"Database already contains N tables" warning</h3>
+    <p>
+      The wizard found existing data in the database you pointed it at. Choose
+      <strong>another database</strong> if that data matters, or confirm the
+      <strong>erase</strong> option to wipe it and install fresh. Nothing is deleted without
+      explicit confirmation.
+    </p>
+
+    <h3>Email links point to <code>localhost</code></h3>
+    <p>
+      <code>NEXT_PUBLIC_APP_URL</code> was not set (or was localhost) when the app was built.
+      Set it to your real domain in <code>.env.production</code>, then rebuild and restart:
+    </p>
+<pre class="code"><span class="k">npm</span> run build &amp;&amp; <span class="k">pm2</span> restart 6amstudio</pre>
+
+    <h3>License activation fails</h3>
+    <ul>
+      <li>Check the marketplace username and purchase code for typos (copy-paste both).</li>
+      <li>A purchase code is bound to a domain — if you're moving servers or domains, follow the activation-issue link shown in the wizard to resolve it.</li>
+      <li><code>localhost</code> installs never need activation.</li>
+    </ul>
+
+    <h3>Image generation fails in the editor</h3>
+    <ul>
+      <li>Confirm at least one AI model is configured <em>and active</em> under Admin → AI Models.</li>
+      <li>Verify the provider API key is valid and the provider account has quota/billing enabled.</li>
+      <li>Check the user has enough credits for the selected model's cost.</li>
+    </ul>
+
+    <h3>Port 3000 already in use</h3>
+<pre class="code"><span class="c"># find and stop the occupant…</span>
+<span class="k">lsof</span> -i :3000
+<span class="c"># …or change the port in ecosystem.config.js (args + PORT) and your proxy</span></pre>
+
+    <h3>Re-running the installer (development only)</h3>
+    <p>Installation is one-way by design. To reset a development machine:</p>
+<pre class="code"><span class="c">-- in MySQL</span>
+DELETE FROM installations;</pre>
+    <p>…then <strong>restart the server</strong> — the installed state is cached in-process and only re-read on boot.</p>
+
+    <!-- ================================================== -->
+    <h2 id="customization">Customization</h2>
+
+    <h3>No-code (admin panel)</h3>
+    <ul>
+      <li><strong>Rebrand entirely</strong> from Admin → Branding: name, slogan, logo, favicon, and theme colors for both dark and light modes — applied live.</li>
+      <li><strong>Curate the creative library</strong>: effects, templates, template categories, and suggested prompts are all data, managed in the admin panel.</li>
+      <li><strong>Shape the economy</strong>: plans, per-model credit costs, and free signup credits define your pricing without code.</li>
+      <li><strong>Rewrite every email</strong> in the mail-template editor.</li>
+    </ul>
+
+    <h3>For developers</h3>
+    <ul>
+      <li><strong>Theme source</strong> — <code>src/config/theme.ts</code> holds the full dark/light palettes as plain hex values; every tint and opacity variant is derived automatically.</li>
+      <li><strong>Payment gateways</strong> — implement the gateway interface and register it alongside Stripe; checkout, webhooks, and crediting are handled by the shared billing core.</li>
+      <li><strong>AI providers</strong> — models are wired through the Vercel AI SDK, so adding further providers follows the existing Google/OpenAI pattern.</li>
+      <li><strong>Database</strong> — the Prisma schema lives in <code>prisma/schema/</code>; after changes run <code>prisma db push</code> and regenerate the client.</li>
+      <li>The codebase is fully typed TypeScript with App Router conventions — API routes under <code>src/app/api</code>, feature logic under <code>src/features</code>, shared libraries under <code>src/lib</code>.</li>
+    </ul>
+
+    <!-- ================================================== -->
+    <h2 id="support">Help &amp; Support</h2>
+
+    <ul class="support-list" style="font-size:.92rem;">
+      <li><span class="icon">📧</span><span>Email: <a href="mailto:contact@6amtech.com">contact@6amtech.com</a></span></li>
+      <li><span class="icon">💬</span><span>WhatsApp / Telegram support available after purchase</span></li>
+      <li><span class="icon">🐞</span><span>Found a bug? Include your app version, server OS, Node version, and the steps to reproduce.</span></li>
+      <li><span class="icon">🔄</span><span>Free updates are included with your purchase license.</span></li>
+    </ul>
+
+    <p style="margin-top:28px;font-size:.85rem;color:var(--fg-2);">
+      Before contacting support, please check the <a href="#troubleshooting">Troubleshooting</a>
+      section — the most common installation issues are covered there with fixes.
+    </p>
+
+  </main>
+</div><!-- /layout -->
+
+<footer>
+  <p>&copy; 2026 6amStudio — AI Image Editing Platform Documentation</p>
+  <p>
+    Built by <a href="mailto:contact@6amtech.com">6amtech</a> &nbsp;|&nbsp;
+    <a href="../../index.html">Home</a>
+  </p>
+</footer>
+
+<button class="back-to-top" aria-label="Back to top" title="Back to top">&#8593;</button>
+
+<script src="../assets/js/docs.js"></script>
+</body>
+</html>

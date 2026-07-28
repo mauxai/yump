@@ -1,0 +1,21 @@
+model BillingSession {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique @map("session_id") @db.VarChar(255)
+  userId      String   @map("user_id")
+  planId      String   @map("plan_id")
+  gatewaySlug String   @map("gateway_slug") @db.VarChar(100)
+  gatewayId   String   @map("gateway_id") @db.Char(36)
+  status      String   @default("pending") @db.VarChar(20) // pending | paid | failed
+  credits     Int      @default(0)
+  amount      Decimal  @default(0) @db.Decimal(10, 2)
+  currency    String   @default("USD") @db.VarChar(8)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([status])
+  @@map("billing_sessions")
+}

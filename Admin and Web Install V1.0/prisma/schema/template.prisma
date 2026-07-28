@@ -1,0 +1,27 @@
+model TemplateCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  createdAt DateTime   @default(now()) @map("created_at")
+  templates Template[]
+
+  @@map("template_categories")
+}
+
+model Template {
+  id          String            @id @default(cuid())
+  title       String
+  description String?           @db.Text
+  imageUrl    String            @map("image_url") @db.Text
+  prompt      String            @db.Text
+  categoryId  String?           @map("category_id")
+  category    TemplateCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  isActive    Boolean           @default(true) @map("is_active")
+  sortOrder   Int               @default(0) @map("sort_order")
+  usageCount  Int               @default(0) @map("usage_count")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@index([isActive, sortOrder])
+  @@index([categoryId])
+  @@map("templates")
+}

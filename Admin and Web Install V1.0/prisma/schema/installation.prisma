@@ -1,0 +1,28 @@
+// Installer state — written exclusively by the /install wizard
+// (src/features/install). Single-row table: the app is either installed or
+// it isn't. Holds all installation state; only DATABASE_URL stays in env
+// files, since the app needs it to reach this table at all.
+model Installation {
+  id            String    @id @default(cuid())
+  installed     Boolean   @default(false)
+  // Last COMPLETED wizard step (2 = database, 3 = purchase). See
+  // src/features/install/config.ts STEP.
+  step          Int       @default(0)
+  version       String?
+  buyerUsername String?   @map("buyer_username")
+  buyerName     String?   @map("buyer_name")
+  buyerEmail    String?   @map("buyer_email")
+  purchaseCode  String?   @map("purchase_code")
+  domain        String?
+  // Cached license activation state. Re-verified on a 24h TTL by the runtime
+  // activation gate (src/features/install/activation.ts). Defaults to active
+  // (fail-open) so a fresh row never gates the app.
+  licenseActive    Boolean   @default(true) @map("license_active")
+  licenseCheckedAt DateTime? @map("license_checked_at")
+  licenseErrors    String?   @map("license_errors") @db.Text
+  installedAt   DateTime? @map("installed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("installations")
+}

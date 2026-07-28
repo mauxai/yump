@@ -1,0 +1,26 @@
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String?
+  avatar         String?   @db.Text @map("avatar")
+  passwordHash   String    @map("password_hash")
+  status         String    @default("active") // "active" | "suspended"
+  lastActiveAt   DateTime? @map("last_active_at")
+  creditsUsed    Int       @default(0) @map("credits_used")
+  creditsTotal   Int       @default(10) @map("credits_total")
+  creditsResetAt DateTime  @default(now()) @map("credits_reset_at")
+  planId         String?   @map("plan_id") // current plan, set on each paid purchase
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  projects         Project[]
+  billingHistory   BillingHistory[]
+  billingSessions  BillingSession[]
+  jobs             Job[]
+  deviceTokens     DeviceToken[]
+  notifications    Notification[]
+
+  @@index([status])
+  @@index([lastActiveAt])
+  @@map("users")
+}

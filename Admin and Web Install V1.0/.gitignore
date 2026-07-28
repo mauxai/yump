@@ -1,0 +1,23 @@
+node_modules
+.next
+.env
+.env.local
+.env.*.local
+*.log
+prisma/dev.db
+prisma/dev.db-journal
+uploads/
+public/storage/
+!public/storage/**/.gitkeep
+.DS_Store
+
+# Marketing docs — local only, never deploy to production
+_marketing-docs/
+.idea
+
+# Distribution packaging output
+package/
+dist/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo

@@ -1,0 +1,15 @@
+model Gateway {
+  id          String   @id @default(uuid()) @db.Char(36)
+  name        String   @db.VarChar(100)
+  type        String   @db.VarChar(50)
+  mode        String   @default("live") @db.VarChar(20)
+  credentials Json?
+  config      Json?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([name])
+  @@map("gateways")
+}

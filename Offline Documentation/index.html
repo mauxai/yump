@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6amStudio — Documentation</title>
+  <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('6amstudio-docs-theme')||'dark');}catch(e){}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="source/assets/css/docs.css" />
+  <link rel="icon" type="image/png" sizes="120x120" href="source/assets/images/favicon-120.png" />
+  <link rel="icon" type="image/png" sizes="80x80" href="source/assets/images/favicon-80.png" />
+  <link rel="icon" type="image/png" sizes="60x60" href="source/assets/images/favicon-60.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="source/assets/images/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" href="source/assets/images/6amstudio.png" />
+</head>
+<body>
+
+<div class="scroll-progress"><div class="scroll-progress-bar"></div></div>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<header class="navbar">
+  <a class="brand" href="index.html">
+    <img class="brand-logo brand-logo-dark" src="source/assets/images/6amimage_full_logo_dark.png" alt="6amStudio" />
+    <img class="brand-logo brand-logo-light" src="source/assets/images/6amimage_full_logo_light.png" alt="6amStudio" />
+    <span class="brand-sub">Docs</span>
+  </a>
+
+  <nav>
+    <a href="index.html" class="active">Home</a>
+    <a href="source/pages/documentation.html">Documentation</a>
+    <a href="source/pages/documentation.html#installation-process">Installation</a>
+    <a href="source/pages/documentation.html#rest-api">REST API</a>
+    <a href="source/pages/documentation.html#mobile-app">Mobile App</a>
+  </nav>
+
+  <div class="nav-actions">
+    <button class="btn-icon theme-toggle" title="Toggle theme" aria-label="Toggle theme">☀️</button>
+    <button class="btn-icon menu-toggle" title="Toggle menu" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<!-- ============================================================
+     HOME CONTENT
+     ============================================================ -->
+<main class="page-home">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="badge-version hero-rise">v1.0 — AI Image Editor</div>
+    <h1 class="hero-rise-2">6amStudio <span>Documentation</span></h1>
+    <p class="hero-rise-3">
+      Complete reference for 6amStudio — a self-hosted, AI-powered image editing platform
+      built with Next.js 14, covering installation, configuration, the admin panel,
+      deployment, and the REST API.
+    </p>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="cards-grid">
+
+    <!-- Documentation Card -->
+    <div class="card">
+      <div class="card-icon lime">📖</div>
+      <h3>Full Documentation</h3>
+      <p>
+        Everything in one guide: a guided <span class="mark">install wizard</span>, an AI editor
+        powered by <span class="mark">Google Gemini</span> and <span class="mark">OpenAI</span>,
+        a credit-based billing system with <span class="mark">Stripe</span>, and a complete
+        admin panel for users, plans, AI models, effects, and templates.
+      </p>
+      <div class="actions">
+        <span class="pill">Next.js 14</span>
+        <span class="pill">React 18</span>
+        <span class="pill">TypeScript 5</span>
+        <span class="pill">Prisma 5</span>
+        <span class="pill">MySQL</span>
+        <span class="pill">Tailwind CSS 3</span>
+      </div>
+      <a href="source/pages/documentation.html" class="btn-link">View Documentation →</a>
+    </div>
+
+    <!-- Quick Install Card -->
+    <div class="card">
+      <div class="card-icon orange">🚀</div>
+      <h3>Install in Minutes</h3>
+      <p>
+        No config-file surgery. Set one URL, build, and open the site — the built-in
+        web installer walks you through the rest.
+      </p>
+      <ul class="support-list">
+        <li><span class="icon">①</span><span>Set <code>NEXT_PUBLIC_APP_URL</code> in <code>.env.production</code></span></li>
+        <li><span class="icon">②</span><span>Run <code>npm install</code> and <code>npm run build</code></span></li>
+        <li><span class="icon">③</span><span>Start the server — every URL redirects to <code>/install</code></span></li>
+        <li><span class="icon">④</span><span>Walk the 4-step wizard: requirements → database → license → admin</span></li>
+      </ul>
+      <a href="source/pages/documentation.html#installation-process" class="btn-link">Installation Guide →</a>
+    </div>
+
+    <!-- Solution Overview Card -->
+    <div class="card">
+      <div class="card-icon blue">🧩</div>
+      <h3>Solution Overview</h3>
+      <p>One Next.js application serving three surfaces — the user app, the admin panel, and a documented REST API.</p>
+
+      <table class="doc-table" style="margin-top:12px;">
+        <thead>
+          <tr>
+            <th>Surface</th>
+            <th>Path</th>
+            <th>Focus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>User App</strong></td>
+            <td><code>/</code></td>
+            <td>AI editor, projects, gallery, billing, notifications</td>
+          </tr>
+          <tr>
+            <td><strong>Admin Panel</strong></td>
+            <td><code>/admin</code></td>
+            <td>Users, plans, AI models, effects, templates, settings</td>
+          </tr>
+          <tr>
+            <td><strong>REST API</strong></td>
+            <td><code>/api/v1</code></td>
+            <td>JWT-authenticated API with OpenAPI docs</td>
+          </tr>
+          <tr>
+            <td><strong>Mobile App</strong></td>
+            <td><code>Flutter</code></td>
+            <td>Android &amp; iOS companion app on the same backend</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:.82rem;color:var(--fg-2);">
+        Everything runs from a single Node.js process backed by MySQL — deployable with
+        <code>npm run start</code> or the bundled PM2 ecosystem file.
+      </p>
+    </div>
+
+    <!-- Help & Support Card -->
+    <div class="card">
+      <div class="card-icon purple">🛟</div>
+      <h3>Help &amp; Support</h3>
+      <p>Need assistance? Reach out via the channels below or browse the documentation for answers.</p>
+
+      <ul class="support-list">
+        <li>
+          <span class="icon">📧</span>
+          <span>Email: <a href="mailto:contact@6amtech.com">contact@6amtech.com</a></span>
+        </li>
+        <li>
+          <span class="icon">💬</span>
+          <span>WhatsApp / Telegram support available after purchase</span>
+        </li>
+        <li>
+          <span class="icon">🐞</span>
+          <span>Report bugs or issues via email or support channels</span>
+        </li>
+        <li>
+          <span class="icon">🔄</span>
+          <span>Free updates included with your purchase license</span>
+        </li>
+      </ul>
+      <a href="source/pages/documentation.html#support" class="btn-link">Support Details →</a>
+    </div>
+
+  </div><!-- /cards-grid -->
+
+  <!-- Quick Setup Reference -->
+  <div style="max-width:1200px;margin:48px auto 0;padding:0 24px;">
+    <div class="card">
+      <h3 style="margin-bottom:12px;">Quick Setup Reference</h3>
+      <p style="margin-bottom:16px;">Follow these steps in order to get 6amStudio running on your server:</p>
+      <ol class="steps" style="margin-bottom:0;">
+        <li>
+          <div class="step-body">
+            <strong>Prepare the server</strong>
+            Node.js 18+, MySQL, and a reverse proxy (Nginx or Apache) pointing at port 3000.
+            <a href="source/pages/documentation.html#prerequisites">Server Requirements →</a>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Configure, build, and start</strong>
+            Set <code>NEXT_PUBLIC_APP_URL</code> to your domain, then <code>npm install</code>,
+            <code>npm run build</code>, and start with PM2 or <code>npm run start</code>.
+            <a href="source/pages/documentation.html#quick-start">Quick Start →</a>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Run the install wizard</strong>
+            Open your domain — the wizard checks requirements, connects the database,
+            activates your purchase code, and creates the super admin.
+            <a href="source/pages/documentation.html#installation-process">Installation Process →</a>
+          </div>
+        </li>
+        <li>
+          <div class="step-body">
+            <strong>Configure the platform</strong>
+            Log in at <code>/admin</code> to add AI model API keys, SMTP, payment gateways,
+            plans, and branding.
+            <a href="source/pages/documentation.html#configuration">Configuration →</a>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>&copy; 2026 6amStudio — AI Image Editing Platform Documentation</p>
+  <p>
+    Built by <a href="mailto:contact@6amtech.com">6amtech</a> &nbsp;|&nbsp;
+    <a href="source/pages/documentation.html">Documentation</a>
+  </p>
+</footer>
+
+<button class="back-to-top" aria-label="Back to top" title="Back to top">&#8593;</button>
+
+<script src="source/assets/js/docs.js"></script>
+</body>
+</html>

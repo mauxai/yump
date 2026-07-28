@@ -1,0 +1,21 @@
+model Job {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  projectId   String?   @map("project_id")
+  type        String    @db.VarChar(60)   // "generate" | "edit" | "enhance"
+  status      String    @default("pending") @db.VarChar(20) // pending | running | done | failed
+  input       Json?
+  output      Json?
+  errorMsg    String?   @map("error_msg") @db.Text
+  creditCost  Int       @default(0) @map("credit_cost")
+  startedAt   DateTime? @map("started_at")
+  finishedAt  DateTime? @map("finished_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@map("jobs")
+}

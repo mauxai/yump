@@ -1,0 +1,19 @@
+model AiModel {
+  id        String   @id @default(cuid())
+  label     String
+  provider  String
+  modelId   String   @map("model_id")
+  credentials Json?
+  isActive  Boolean  @default(true) @map("is_active")
+  isDefault Boolean  @default(false) @map("is_default")
+  notes       String?  @db.Text
+  creditCost  Int      @default(1) @map("credit_cost")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([provider])
+  edits Edit[]
+
+  @@index([isDefault])
+  @@map("ai_models")
+}

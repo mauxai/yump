@@ -1,0 +1,17 @@
+model BillingHistory {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  planId      String?  @map("plan_id")
+  amount      Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD") @db.VarChar(8)
+  status          String   @default("paid") @db.VarChar(20) // paid | pending | failed | refunded
+  description     String   @db.VarChar(255)
+  creditsGranted  Int?     @map("credits_granted")
+  gatewayRef      String?  @map("gateway_ref") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("billing_history")
+}
