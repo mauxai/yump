@@ -116,7 +116,8 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
   void _restoreCachedModel() {
     final cachedId = Get.find<AuthRepo>().selectedAiModelId;
     if (cachedId == null) return;
-    final models = Get.find<DashboardController>().aiModelList;
+    final allModels = Get.find<DashboardController>().aiModelList;
+    final models = allModels.where((m) => m.type == 'IMAGE' || m.type == null).toList();
     _selectedModel = models.firstWhereOrNull((m) => m.id == cachedId);
   }
 
@@ -136,7 +137,8 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
     final text = _promptCtrl.text.trim();
     if (template == null && text.isEmpty) return;
     final dashCtrl = Get.find<DashboardController>();
-    final modelId = (_selectedModel ?? dashCtrl.aiModelList.firstOrNull)?.id ?? '';
+    final imageModels = dashCtrl.aiModelList.where((m) => m.type == 'IMAGE' || m.type == null).toList();
+    final modelId = (_selectedModel ?? imageModels.firstOrNull)?.id ?? '';
     await widget.ctrl.applyEdit(
       template != null ? '' : text,
       modelId,
@@ -385,7 +387,8 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
         final hint = ctrl.isLassoActive && ctrl.lassoClosed ? 'edit_this_area'.tr : 'describe_your_edit'.tr;
 
         return GetBuilder<DashboardController>(builder: (dashCtrl) {
-          final models = dashCtrl.aiModelList;
+          final allModels = dashCtrl.aiModelList;
+          final models = allModels.where((m) => m.type == 'IMAGE' || m.type == null).toList();
           final effective = _selectedModel ?? models.firstOrNull;
           final creditCost = effective?.creditCost;
           final modelLabel = effective?.label ?? 'model'.tr;

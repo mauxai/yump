@@ -290,7 +290,9 @@ class EditorController extends GetxController implements GetxService {
 
   Future<void> generateEdit({required String promptOverride}) async {
     final dashCtrl = Get.find<DashboardController>();
-    final modelId = dashCtrl.aiModelList.firstOrNull?.id ?? '';
+    final modelId = dashCtrl.aiModelList.firstWhereOrNull((m) => m.type == 'IMAGE')?.id ??
+        dashCtrl.aiModelList.firstOrNull?.id ??
+        '';
     await applyEdit(promptOverride, modelId);
   }
 

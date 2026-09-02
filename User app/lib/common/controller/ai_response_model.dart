@@ -26,16 +26,20 @@ class AiModel {
   String? label;
   String? provider;
   String? modelId;
+  String? type;
+  bool? isDefault;
   double? creditCost;
 
   AiModel(
-      {this.id, this.label, this.provider, this.modelId, this.creditCost});
+      {this.id, this.label, this.provider, this.modelId, this.type, this.isDefault, this.creditCost});
 
   AiModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     label = json['label'];
     provider = json['provider'];
     modelId = json['modelId'];
+    type = json['type'];
+    isDefault = json['isDefault'];
     creditCost = double.tryParse(json['creditCost'].toString());
   }
 
@@ -45,6 +49,8 @@ class AiModel {
     data['label'] = label;
     data['provider'] = provider;
     data['modelId'] = modelId;
+    data['type'] = type;
+    data['isDefault'] = isDefault;
     data['creditCost'] = creditCost;
     return data;
   }

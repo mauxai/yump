@@ -14,7 +14,8 @@ class ChatModelSelectorSheet extends StatelessWidget {
     return GetBuilder<ChatController>(
       builder: (chatCtrl) {
         final dashboardCtrl = Get.find<DashboardController>();
-        final models = dashboardCtrl.aiModelList;
+        final allModels = dashboardCtrl.aiModelList;
+        final models = allModels.where((m) => m.type == 'CHAT' || m.type == null).toList();
 
         return Container(
           decoration: BoxDecoration(
