@@ -37,6 +37,28 @@ class AppConstants {
   static const String notificationsUri = '/api/v1/notifications';
   static const String notificationReadUri = '/api/v1/notifications/read';
 
+  // Multimodal AI Chat
+  static const String chatUri = '/api/v1/chat';
+  static const String conversationsUri = '/api/v1/conversations';
+  static const String chatFeedbackUri = '/api/v1/chat/feedback';
+  static const String chatAttachmentUploadUri = '/api/v1/attachments/upload';
+
+  // Video Studio
+  static const String videoGenerateUri = '/api/v1/video/generate';
+  static const String videoStatusUri = '/api/v1/video/'; // + [id] + /status
+  static const String videoGalleryUri = '/api/v1/video/gallery';
+  static const String videoModelsUri = '/api/v1/video/models';
+  static const String videoDeleteUri = '/api/v1/video/'; // + [id] (DELETE)
+
+  // Cloud Gallery
+  static const String cloudGalleryUri = '/api/v1/gallery';
+
+  // Account Security & Settings
+  static const String changePasswordUri = '/api/v1/user/change-password';
+  static const String changeEmailUri = '/api/v1/user/change-email';
+  static const String deleteAccountUri = '/api/v1/user/profile';
+  static const String analyticsUri = '/api/v1/user/analytics';
+
 
 
   /// Shared Key
@@ -68,6 +90,8 @@ class AppConstants {
     {'id': EditorTool.brush, 'label': 'tool_draw',  'icon': Icons.edit_rounded},
     {'id': EditorTool.crop,  'label': 'tool_crop',  'icon': Icons.crop_rounded},
     {'id': EditorTool.shape, 'label': 'tool_shape', 'icon': Icons.interests_rounded},
+    {'id': EditorTool.heal,  'label': 'tool_heal',  'icon': Icons.healing_rounded},
+    {'id': EditorTool.color, 'label': 'tool_color', 'icon': Icons.tune_rounded},
   ];
 
   static const List<Map<String, String>> cropAspectRatios = [

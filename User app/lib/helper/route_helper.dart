@@ -12,12 +12,20 @@ import 'package:lumen/features/forgot_password/views/reset_password_view.dart';
 import 'package:lumen/features/profile/views/edit_profile_view.dart';
 import 'package:lumen/features/update/views/update_view.dart';
 import 'package:lumen/features/upgrade/views/upgrade_view.dart';
+import 'package:lumen/features/chat/views/chat_view.dart';
+import 'package:lumen/features/video_studio/views/video_studio_view.dart';
+import 'package:lumen/features/creations/views/creations_view.dart';
+import 'package:lumen/features/analytics/views/analytics_view.dart';
 
 class RouteHelper {
   static const String initial = '/';
   static const String createAccount = '/create-account';
   static const String signIn = '/sign-in';
   static const String dashboard = '/dashboard';
+  static const String chat = '/chat';
+  static const String videoStudio = '/video-studio';
+  static const String creations = '/creations';
+  static const String analytics = '/analytics';
   static const String upgrade = '/upgrade';
   static const String editor = '/editor';
   static const String notification = '/notification';
@@ -31,6 +39,10 @@ class RouteHelper {
   static String getCreateAccountRoute() => createAccount;
   static String getSignInRoute() => signIn;
   static String getDashboardRoute({int pageIndex = 0}) => '$dashboard?pageIndex=$pageIndex';
+  static String getChatRoute() => chat;
+  static String getVideoStudioRoute() => videoStudio;
+  static String getCreationsRoute() => creations;
+  static String getAnalyticsRoute() => analytics;
   static String getUpgradeRoute() => upgrade;
   static String getNotificationRoute() => notification;
   static String getEditProfileRoute() => editProfile;
@@ -60,6 +72,10 @@ class RouteHelper {
         purchasedPlan: Get.arguments is Plan ? Get.arguments as Plan : null,
       ),
     ),
+    GetPage(name: chat, page: () => const ChatView()),
+    GetPage(name: videoStudio, page: () => const VideoStudioView()),
+    GetPage(name: creations, page: () => const CreationsView()),
+    GetPage(name: analytics, page: () => const AnalyticsView()),
     GetPage(name: upgrade, page: () => const UpgradeView()),
     GetPage(
       name: editor,

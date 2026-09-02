@@ -1,4 +1,4 @@
-enum EditorTool { lasso, shape, brush, crop }
+enum EditorTool { lasso, shape, brush, crop, heal, color }
 
 enum CropHandle {
   topLeft,

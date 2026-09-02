@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
@@ -38,6 +39,24 @@ class ProfileAccountSection extends GetView<ProfileController> {
               ),
               Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
               _ProfileAccountTile(
+                icon: Icons.lock_outline_rounded,
+                title: 'change_password'.tr,
+                onTap: () => _showChangePasswordDialog(context),
+              ),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
+              _ProfileAccountTile(
+                icon: Icons.email_outlined,
+                title: 'change_email'.tr,
+                onTap: () => _showChangeEmailDialog(context),
+              ),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
+              _ProfileAccountTile(
+                icon: Icons.insights_rounded,
+                title: 'usage_analytics'.tr,
+                onTap: () => Get.toNamed(RouteHelper.getAnalyticsRoute()),
+              ),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
+              _ProfileAccountTile(
                 icon: Icons.brightness_6_rounded,
                 title: 'appearance'.tr,
                 onTap: () => controller.showThemeDialog(context),
@@ -47,6 +66,24 @@ class ProfileAccountSection extends GetView<ProfileController> {
                 icon: Icons.language_rounded,
                 title: 'language'.tr,
                 onTap: () => controller.showLanguageDialog(context),
+              ),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
+              _ProfileAccountTile(
+                icon: Icons.privacy_tip_outlined,
+                title: 'Privacy Policy',
+                onTap: () async {
+                  final Uri url = Uri.parse('https://yumpass.ai/privacy-policy');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
+              _ProfileAccountTile(
+                icon: Icons.delete_forever_outlined,
+                title: 'delete_account'.tr,
+                onTap: () => _showDeleteAccountDialog(context),
+                isDestructive: true,
               ),
               Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
               _ProfileAccountTile(
@@ -61,7 +98,130 @@ class ProfileAccountSection extends GetView<ProfileController> {
       ],
     );
   }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final currentPass = TextEditingController();
+    final newPass = TextEditingController();
+    final confirmPass = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('change_password'.tr, style: robotoBold),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: currentPass,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'current_password'.tr),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: newPass,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'new_password'.tr),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: confirmPass,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'confirm_password'.tr),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('cancel'.tr)),
+          ElevatedButton(
+            onPressed: () async {
+              if (newPass.text.trim().length < 8) {
+                Get.snackbar('error'.tr, 'password_min_length'.tr);
+                return;
+              }
+              if (newPass.text != confirmPass.text) {
+                Get.snackbar('error'.tr, 'passwords_do_not_match'.tr);
+                return;
+              }
+              final ok = await controller.changePassword(
+                currentPassword: currentPass.text,
+                newPassword: newPass.text,
+              );
+              if (ok && ctx.mounted) Navigator.pop(ctx);
+            },
+            child: Text('save'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showChangeEmailDialog(BuildContext context) {
+    final newEmail = TextEditingController();
+    final pass = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('change_email'.tr, style: robotoBold),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: newEmail,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(labelText: 'new_email'.tr),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: pass,
+              obscureText: true,
+              decoration: InputDecoration(labelText: 'password'.tr),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('cancel'.tr)),
+          ElevatedButton(
+            onPressed: () async {
+              if (!newEmail.text.contains('@')) {
+                Get.snackbar('error'.tr, 'invalid_email'.tr);
+                return;
+              }
+              final ok = await controller.changeEmail(
+                newEmail: newEmail.text.trim(),
+                password: pass.text,
+              );
+              if (ok && ctx.mounted) Navigator.pop(ctx);
+            },
+            child: Text('save'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('delete_account'.tr, style: robotoBold.copyWith(color: Colors.redAccent)),
+        content: Text('delete_account_confirm'.tr),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('cancel'.tr)),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () {
+              Navigator.pop(ctx);
+              controller.deleteAccount();
+            },
+            child: Text('delete_permanently'.tr, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
 
 class _ProfileAccountTile extends StatelessWidget {
   final IconData icon;

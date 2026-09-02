@@ -37,15 +37,15 @@ class DashboardBottomNav extends GetView<DashboardController> {
                 ),
                 DashboardNavItem(
                   isSelected: controller.currentIndex == 1,
-                  icon: Icons.grid_view_rounded,
-                  label: 'projects'.tr,
+                  icon: Icons.forum_outlined,
+                  label: 'chat'.tr,
                   onTap: () => controller.changeTab(1),
                 ),
                 const SizedBox(width: 56),
                 DashboardNavItem(
                   isSelected: controller.currentIndex == 3,
-                  icon: Icons.history_rounded,
-                  label: 'activity'.tr,
+                  icon: Icons.auto_awesome_mosaic_rounded,
+                  label: 'creations'.tr,
                   onTap: () => controller.changeTab(3),
                 ),
                 DashboardNavItem(

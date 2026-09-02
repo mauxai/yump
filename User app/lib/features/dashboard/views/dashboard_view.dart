@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lumen/common/models/auth_response.dart';
 import 'package:lumen/common/widgets/exit_confirm_dialog.dart';
-import 'package:lumen/features/activity/views/activity_view.dart';
+import 'package:lumen/features/chat/views/chat_view.dart';
+import 'package:lumen/features/creations/views/creations_view.dart';
 import 'package:lumen/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:lumen/features/dashboard/widgets/dashboard_bottom_nav.dart';
 import 'package:lumen/features/dashboard/widgets/dashboard_fab.dart';
 import 'package:lumen/features/home/views/home_view.dart';
 import 'package:lumen/features/profile/views/profile_view.dart';
-import 'package:lumen/features/projects/views/projects_view.dart';
 import 'package:lumen/features/upgrade/widgets/plan_purchase_success_dialog.dart';
 import 'package:lumen/util/dimensions.dart';
 
@@ -63,9 +63,9 @@ class DashboardView extends GetView<DashboardController> {
             index: controller.currentIndex,
             children: const [
               HomeView(),
-              ProjectsView(),
+              ChatView(),
               SizedBox.shrink(),
-              ActivityView(),
+              CreationsView(),
               ProfileView(),
             ],
           ),

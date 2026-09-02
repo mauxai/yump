@@ -9,6 +9,7 @@ import 'package:lumen/features/home/controllers/home_controller.dart';
 import 'package:lumen/features/notification/controllers/notification_controller.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/features/projects/controllers/projects_controller.dart';
+import 'package:lumen/features/dashboard/widgets/dashboard_create_sheet.dart';
 import 'package:lumen/helper/route_helper.dart';
 
 class DashboardController extends GetxController implements GetxService {
@@ -67,6 +68,9 @@ class DashboardController extends GetxController implements GetxService {
   }
 
   void onFabTap() {
-    Get.find<HomeController>().pickFromGallery();
+    Get.bottomSheet(
+      const DashboardCreateSheet(),
+      isScrollControlled: true,
+    );
   }
 }

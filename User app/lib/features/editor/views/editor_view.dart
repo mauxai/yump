@@ -13,6 +13,8 @@ import 'package:lumen/features/editor/widgets/editor_history_strip.dart';
 import 'package:lumen/features/editor/widgets/editor_prompt_input.dart';
 import 'package:lumen/features/editor/widgets/editor_tools_row.dart';
 import 'package:lumen/features/editor/widgets/editor_top_bar.dart';
+import 'package:lumen/features/editor/widgets/heal_actions_bar.dart';
+import 'package:lumen/features/editor/widgets/color_tuning_bar.dart';
 import 'package:lumen/features/editor/widgets/shape_picker_bar.dart';
 
 class EditorView extends StatefulWidget {
@@ -102,6 +104,20 @@ class _EditorViewState extends State<EditorView> {
                     const SizedBox(height: 8),
                     DrawActionsBar(ctrl: ctrl),
                     const SizedBox(height: 12),
+                  ]);
+                }
+
+                if (ctrl.selectedTool == EditorTool.heal) {
+                  return const Column(mainAxisSize: MainAxisSize.min, children: [
+                    HealActionsBar(),
+                    SizedBox(height: 12),
+                  ]);
+                }
+
+                if (ctrl.selectedTool == EditorTool.color) {
+                  return const Column(mainAxisSize: MainAxisSize.min, children: [
+                    ColorTuningBar(),
+                    SizedBox(height: 12),
                   ]);
                 }
 

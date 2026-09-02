@@ -41,6 +41,12 @@ class EditorToolsRow extends StatelessWidget {
                   case EditorTool.shape:
                     ctrl.clearLasso();
                     ctrl.selectTool(EditorTool.shape);
+                  case EditorTool.heal:
+                    ctrl.clearLasso();
+                    ctrl.selectTool(EditorTool.heal);
+                  case EditorTool.color:
+                    ctrl.clearLasso();
+                    ctrl.selectTool(EditorTool.color);
                 }
               },
             );

@@ -27,6 +27,14 @@ import 'package:lumen/features/activity/repo/activity_repo.dart';
 import 'package:lumen/features/update/controllers/update_controller.dart';
 import 'package:lumen/features/upgrade/controllers/upgrade_controller.dart';
 import 'package:lumen/features/upgrade/repo/upgrade_repo.dart';
+import 'package:lumen/features/chat/controllers/chat_controller.dart';
+import 'package:lumen/features/chat/repo/chat_repo.dart';
+import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
+import 'package:lumen/features/video_studio/repo/video_studio_repo.dart';
+import 'package:lumen/features/gallery/controllers/cloud_gallery_controller.dart';
+import 'package:lumen/features/gallery/repo/cloud_gallery_repo.dart';
+import 'package:lumen/features/analytics/controllers/analytics_controller.dart';
+import 'package:lumen/features/analytics/repo/analytics_repo.dart';
 import 'package:lumen/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,6 +57,10 @@ class DependencyInjection {
     Get.lazyPut(() => NotificationRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => ForgotPasswordRepo(apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => ConfigRepo(apiClient: Get.find()), fenix: true);
+    Get.lazyPut(() => ChatRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
+    Get.lazyPut(() => VideoStudioRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
+    Get.lazyPut(() => CloudGalleryRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
+    Get.lazyPut(() => AnalyticsRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
 
     /// Controller
     Get.lazyPut(() => ThemeController(authRepo: Get.find()), fenix: true);
@@ -66,6 +78,10 @@ class DependencyInjection {
     Get.lazyPut(() => UpgradeController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => ForgotPasswordController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => ConfigController(configRepo: Get.find()), fenix: true);
+    Get.lazyPut(() => ChatController(chatRepo: Get.find()), fenix: true);
+    Get.lazyPut(() => VideoStudioController(repo: Get.find()), fenix: true);
+    Get.lazyPut(() => CloudGalleryController(repo: Get.find()), fenix: true);
+    Get.lazyPut(() => AnalyticsController(repo: Get.find()), fenix: true);
 
     Map<String, Map<String, String>> languages = {};
     for(LanguageModel languageModel in AppConstants.languages) {

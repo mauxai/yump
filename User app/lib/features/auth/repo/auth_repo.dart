@@ -192,6 +192,24 @@ class AuthRepo {
     }
   }
 
+  Future<Response> changePassword({required String currentPassword, required String newPassword}) async {
+    return await apiClient.postData(AppConstants.changePasswordUri, {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
+  }
+
+  Future<Response> changeEmail({required String newEmail, required String password}) async {
+    return await apiClient.postData(AppConstants.changeEmailUri, {
+      'newEmail': newEmail,
+      'password': password,
+    });
+  }
+
+  Future<Response> deleteAccount() async {
+    return await apiClient.deleteData(AppConstants.deleteAccountUri);
+  }
+
   void saveString(String key, String value) => sharedPreferences.setString(key, value);
   String? getString(String key) => sharedPreferences.getString(key);
   void saveBool(String key, bool value) => sharedPreferences.setBool(key, value);
@@ -200,3 +218,4 @@ class AuthRepo {
   int getInt(String key, {int defaultValue = 0}) => sharedPreferences.getInt(key) ?? defaultValue;
   void remove(String key) => sharedPreferences.remove(key);
 }
+

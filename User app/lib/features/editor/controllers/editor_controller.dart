@@ -263,7 +263,38 @@ class EditorController extends GetxController implements GetxService {
 
   // ── Tool selection ────────────────────────────────────────────────────────
 
-  void selectTool(EditorTool tool) {
+  List<Offset> healPoints = [];
+
+  void clearHealStrokes() {
+    healPoints.clear();
+    update();
+  }
+
+  Future<void> applySpotHeal() async {
+    if (healPoints.isEmpty) return;
+    const prompt = 'Remove and heal the areas marked with colored circles. Fill them in naturally, matching the surrounding background and texture seamlessly.';
+    await generateEdit(promptOverride: prompt);
+    clearHealStrokes();
+    selectTool(null);
+  }
+
+  Future<void> enhanceImage() async {
+    const prompt = 'Enhance the overall image quality — sharpen fine details, reduce noise, and improve clarity while keeping it natural.';
+    await generateEdit(promptOverride: prompt);
+  }
+
+  Future<void> removeBackground() async {
+    const prompt = 'Remove the background completely and isolate the subject on a clean transparent or white background.';
+    await generateEdit(promptOverride: prompt);
+  }
+
+  Future<void> generateEdit({required String promptOverride}) async {
+    final dashCtrl = Get.find<DashboardController>();
+    final modelId = dashCtrl.aiModelList.firstOrNull?.id ?? '';
+    await applyEdit(promptOverride, modelId);
+  }
+
+  void selectTool(EditorTool? tool) {
     final wasActive = selectedTool == EditorTool.crop;
     selectedTool = selectedTool == tool ? null : tool;
     if (!wasActive && selectedTool == EditorTool.crop) _needsCropInit = true;

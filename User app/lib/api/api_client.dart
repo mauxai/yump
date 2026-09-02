@@ -68,6 +68,32 @@ class ApiClient extends GetxService {
     }
   }
 
+  Stream<String> postStream(String uri, dynamic body, {Map<String, String>? headers}) async* {
+    try {
+      final request = http.Request('POST', Uri.parse(appBaseUrl + uri));
+      request.headers.addAll(headers ?? _mainHeaders);
+      request.headers['Accept'] = 'text/event-stream';
+      request.body = jsonEncode(body);
+
+      final client = http.Client();
+      final streamedResponse = await client.send(request);
+
+      if (streamedResponse.statusCode != 200) {
+        final errString = await streamedResponse.stream.bytesToString();
+        yield 'data: {"type":"error","error":"$errString"}';
+        return;
+      }
+
+      await for (final chunk in streamedResponse.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (chunk.trim().isNotEmpty) {
+          yield chunk;
+        }
+      }
+    } catch (e) {
+      yield 'data: {"type":"error","error":"$e"}';
+    }
+  }
+
   Future<Response> postMultipartData(String uri, Map<String, String> body, List<MultipartBody> multipartBody, List<MultipartDocument> otherFile, {Map<String, String>? headers, bool handleError = true}) async {
     try {
       debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');

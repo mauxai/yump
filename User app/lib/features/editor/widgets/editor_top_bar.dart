@@ -56,6 +56,41 @@ class EditorTopBar extends StatelessWidget {
                 icon: Icons.redo_rounded,
                 onTap: ctrl.canRedo ? ctrl.redo : null,
               )),
+          const SizedBox(width: 6),
+          GetBuilder<EditorController>(builder: (ctrl) => PopupMenuButton<String>(
+                icon: const Icon(Icons.auto_awesome, color: AppColors.gradientStart, size: 20),
+                tooltip: 'quick_ai_actions'.tr,
+                onSelected: (action) {
+                  if (ctrl.isGenerating) return;
+                  if (action == 'enhance') {
+                    ctrl.enhanceImage();
+                  } else if (action == 'remove_bg') {
+                    ctrl.removeBackground();
+                  }
+                },
+                itemBuilder: (_) => [
+                  PopupMenuItem(
+                    value: 'enhance',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.auto_fix_high, size: 18, color: AppColors.gradientStart),
+                        const SizedBox(width: 8),
+                        Text('enhance_image'.tr),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'remove_bg',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.blur_off_rounded, size: 18, color: AppColors.gradientStart),
+                        const SizedBox(width: 8),
+                        Text('remove_background'.tr),
+                      ],
+                    ),
+                  ),
+                ],
+              )),
           const SizedBox(width: 10),
           _SaveButton(onTap: ctrl.saveImage),
         ],

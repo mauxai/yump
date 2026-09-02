@@ -39,7 +39,42 @@ class ProfileController extends GetxController implements GetxService {
     }
     showCustomSnackBar('profile_updated'.tr, isError: false);
     await fetchProfile();
+  }
 
+  Future<bool> changePassword({required String currentPassword, required String newPassword}) async {
+    final response = await _authRepo.changePassword(currentPassword: currentPassword, newPassword: newPassword);
+    if (response.statusCode == 200) {
+      showCustomSnackBar('password_changed_successfully'.tr, isError: false);
+      return true;
+    } else {
+      final err = response.body?['error'] ?? 'failed_to_change_password'.tr;
+      showCustomSnackBar(err);
+      return false;
+    }
+  }
+
+  Future<bool> changeEmail({required String newEmail, required String password}) async {
+    final response = await _authRepo.changeEmail(newEmail: newEmail, password: password);
+    if (response.statusCode == 200) {
+      showCustomSnackBar('email_changed_successfully'.tr, isError: false);
+      await fetchProfile();
+      return true;
+    } else {
+      final err = response.body?['error'] ?? 'failed_to_change_email'.tr;
+      showCustomSnackBar(err);
+      return false;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    final response = await _authRepo.deleteAccount();
+    if (response.statusCode == 200) {
+      await _authRepo.signOut();
+      Get.offAllNamed(RouteHelper.getSignInRoute());
+      showCustomSnackBar('account_deleted_successfully'.tr, isError: false);
+    } else {
+      showCustomSnackBar('failed_to_delete_account'.tr);
+    }
   }
 
   void goToUpgrade() {
