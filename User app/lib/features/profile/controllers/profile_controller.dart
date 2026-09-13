@@ -8,6 +8,7 @@ import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/core/theme/theme_controller.dart';
 import 'package:lumen/features/auth/repo/auth_repo.dart';
 import 'package:lumen/helper/route_helper.dart';
+import 'package:lumen/util/app_constants.dart';
 import 'package:lumen/util/styles.dart';
 
 class ProfileController extends GetxController implements GetxService {
@@ -90,16 +91,22 @@ class ProfileController extends GetxController implements GetxService {
         title: Text('select_language'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text('english'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
-              onTap: () { localization.setLanguage(const Locale('en', 'US')); Get.back(); },
-            ),
-            ListTile(
-              title: Text('bangla'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
-              onTap: () { localization.setLanguage(const Locale('bn', 'BD')); Get.back(); },
-            ),
-          ],
+          children: AppConstants.languages.map((lang) {
+            final isSelected = localization.locale.languageCode == lang.languageCode;
+            return ListTile(
+              title: Text(lang.languageName ?? '', style: robotoRegular.copyWith(
+                color: isSelected ? cs.primary : cs.onSurface,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              )),
+              trailing: isSelected ? Icon(Icons.check_circle_rounded, color: cs.primary, size: 20) : null,
+              onTap: () {
+                if (lang.languageCode != null) {
+                  localization.setLanguage(Locale(lang.languageCode!, lang.countryCode));
+                }
+                Get.back();
+              },
+            );
+          }).toList(),
         ),
         actions: [
           TextButton(

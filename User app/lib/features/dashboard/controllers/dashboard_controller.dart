@@ -5,7 +5,6 @@ import 'package:lumen/common/controller/config_controller.dart';
 import 'package:lumen/common/controller/template_model.dart';
 import 'package:lumen/features/activity/controllers/activity_controller.dart';
 import 'package:lumen/features/dashboard/repos/dashboard_repo.dart';
-import 'package:lumen/features/home/controllers/home_controller.dart';
 import 'package:lumen/features/notification/controllers/notification_controller.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/features/projects/controllers/projects_controller.dart';

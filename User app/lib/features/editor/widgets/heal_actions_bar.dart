@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/editor/controllers/editor_controller.dart';
-import 'package:lumen/util/dimensions.dart';
-import 'package:lumen/util/styles.dart';
 
 class HealActionsBar extends StatelessWidget {
   const HealActionsBar({super.key});

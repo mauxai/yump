@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lumen/common/widgets/custom_text_field.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/features/chat/models/chat_models.dart';

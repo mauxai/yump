@@ -19,6 +19,7 @@ class AppTheme {
 
     return ThemeData(
       fontFamily: 'Roboto',
+      fontFamilyFallback: indicFontFallback,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.bgDark,
       colorScheme: const ColorScheme.dark(
@@ -122,6 +123,7 @@ class AppTheme {
 
     return ThemeData(
       fontFamily: 'Roboto',
+      fontFamilyFallback: indicFontFallback,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.bgLight,
       colorScheme: const ColorScheme.light(

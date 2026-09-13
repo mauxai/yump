@@ -16,7 +16,7 @@ class AnalyticsView extends GetView<AnalyticsController> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'usage_analytics'.tr,
-        isBackButtonExist: true,
+        showBackButton: true,
       ),
       body: GetBuilder<AnalyticsController>(
         builder: (ctrl) {

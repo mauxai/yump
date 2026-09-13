@@ -20,7 +20,7 @@ class VideoStudioView extends GetView<VideoStudioController> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'video_studio'.tr,
-        isBackButtonExist: true,
+        showBackButton: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
@@ -273,7 +273,7 @@ class _VideoFormSectionState extends State<_VideoFormSection> {
               const SizedBox(height: 20),
 
               CustomGradientButton(
-                buttonText: ctrl.isGenerating ? 'generating'.tr : 'generate_video'.tr,
+                text: ctrl.isGenerating ? 'generating'.tr : 'generate_video'.tr,
                 isLoading: ctrl.isGenerating,
                 onTap: () {
                   ctrl.generateVideo(

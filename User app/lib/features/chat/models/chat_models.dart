@@ -54,7 +54,7 @@ class ConversationModel {
 }
 
 class ChatMessageModel {
-  final String id;
+  String id;
   final String role; // 'user' | 'assistant'
   String content;
   final int tokensUsed;

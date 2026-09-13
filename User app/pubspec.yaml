@@ -52,7 +52,7 @@ flutter:
     - assets/image/
 
   fonts:
-    - family: Ubuntu
+    - family: Roboto
       fonts:
         - asset: assets/font/Roboto-Light.ttf
           weight: 300

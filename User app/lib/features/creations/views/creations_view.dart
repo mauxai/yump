@@ -5,7 +5,6 @@ import 'package:lumen/common/widgets/custom_appbar_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/gallery/controllers/cloud_gallery_controller.dart';
 import 'package:lumen/features/gallery/models/cloud_edit_model.dart';
-import 'package:lumen/features/projects/controllers/projects_controller.dart';
 import 'package:lumen/features/projects/views/projects_view.dart';
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';

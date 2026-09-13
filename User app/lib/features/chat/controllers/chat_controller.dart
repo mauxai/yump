@@ -6,6 +6,7 @@ import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/features/chat/models/chat_models.dart';
 import 'package:lumen/features/chat/repo/chat_repo.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
+import 'package:lumen/common/controller/localization_controller.dart';
 
 class ChatController extends GetxController implements GetxService {
   final ChatRepo _chatRepo;
@@ -154,10 +155,15 @@ class ChatController extends GetxController implements GetxService {
     isStreaming = true;
     update();
 
+    final String currentLang = Get.isRegistered<LocalizationController>()
+        ? Get.find<LocalizationController>().locale.languageCode
+        : 'as';
+
     final stream = _chatRepo.sendChatMessageStream(
       message: cleanText,
       conversationId: activeConversationId,
       model: selectedModel,
+      language: currentLang,
       attachmentIds: attachmentIds,
     );
 
