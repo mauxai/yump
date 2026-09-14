@@ -3,6 +3,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:lumen/common/controller/voice_input_controller.dart';
+import 'package:lumen/common/widgets/voice_input_button_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/util/dimensions.dart';
@@ -46,6 +48,9 @@ class _ChatInputSectionState extends State<ChatInputSection> {
     final ctrl = Get.find<ChatController>();
     if (text.isEmpty && ctrl.pendingAttachments.isEmpty) return;
 
+    if (Get.isRegistered<VoiceInputController>()) {
+      Get.find<VoiceInputController>().stopListening();
+    }
     _textController.clear();
     ctrl.sendMessage(text);
   }
@@ -161,7 +166,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                     ),
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        padding: const EdgeInsets.only(left: 14, right: 6),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(24),
@@ -169,24 +174,36 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                           ),
                         ),
-                        child: TextField(
-                          controller: _textController,
-                          focusNode: _focusNode,
-                          maxLines: 4,
-                          minLines: 1,
-                          textCapitalization: TextCapitalization.sentences,
-                          style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault),
-                          decoration: InputDecoration(
-                            hintText: 'ask_anything'.tr,
-                            hintStyle: robotoRegular.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                              fontSize: Dimensions.fontSizeDefault,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _textController,
+                                focusNode: _focusNode,
+                                maxLines: 4,
+                                minLines: 1,
+                                textCapitalization: TextCapitalization.sentences,
+                                style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeDefault),
+                                decoration: InputDecoration(
+                                  hintText: 'ask_anything'.tr,
+                                  hintStyle: robotoRegular.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                    fontSize: Dimensions.fontSizeDefault,
+                                  ),
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
+                                onSubmitted: (_) => _send(),
+                              ),
                             ),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                          ),
-                          onSubmitted: (_) => _send(),
+                            VoiceInputButtonWidget(
+                              textController: _textController,
+                              onTextChanged: _onTextChanged,
+                              size: 32,
+                              iconSize: 18,
+                            ),
+                          ],
                         ),
                       ),
                     ),

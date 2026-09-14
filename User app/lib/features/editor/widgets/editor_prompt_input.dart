@@ -4,7 +4,9 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:lumen/common/controller/ai_effect_model.dart';
 import 'package:lumen/common/controller/ai_response_model.dart';
 import 'package:lumen/common/controller/config_controller.dart';
+import 'package:lumen/common/controller/voice_input_controller.dart';
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
+import 'package:lumen/common/widgets/voice_input_button_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/auth/repo/auth_repo.dart';
 import 'package:lumen/features/dashboard/controllers/dashboard_controller.dart';
@@ -136,6 +138,9 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
     final template = widget.ctrl.selectedTemplate;
     final text = _promptCtrl.text.trim();
     if (template == null && text.isEmpty) return;
+    if (Get.isRegistered<VoiceInputController>()) {
+      Get.find<VoiceInputController>().stopListening();
+    }
     final dashCtrl = Get.find<DashboardController>();
     final imageModels = dashCtrl.aiModelList.where((m) => m.type == 'IMAGE' || m.type == null).toList();
     final modelId = (_selectedModel ?? imageModels.firstOrNull)?.id ?? '';
@@ -514,6 +519,16 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
                           size: 16,
                         ),
                       ),
+                    ),
+                  ),
+
+                if (!inputsDisabled)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: VoiceInputButtonWidget(
+                      textController: _promptCtrl,
+                      size: 32,
+                      iconSize: 18,
                     ),
                   ),
 

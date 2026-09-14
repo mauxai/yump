@@ -35,7 +35,7 @@ android {
         applicationId = "com.yumpass.ai"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = maxOf(flutter.minSdkVersion, 19) // flutter_inappwebview requires minSdk >= 19
+        minSdk = maxOf(flutter.minSdkVersion, 21) // speech_to_text requires minSdk >= 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

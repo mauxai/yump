@@ -56,6 +56,10 @@
 	<string>Yumpass AI needs photo library access to select images for AI editing.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Yumpass AI needs permission to save edited photos to your library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Yumpass AI needs microphone access to convert your speech into text prompts.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Yumpass AI uses speech recognition to dictate chat messages and image prompts.</string>
 	<key>GIDClientID</key>
 	<string>689973750512-n48dnbsmdhp679ou9cm4uqfgmcpv20go.apps.googleusercontent.com</string>
 	<key>UIBackgroundModes</key>

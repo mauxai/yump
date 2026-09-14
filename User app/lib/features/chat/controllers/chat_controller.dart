@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:lumen/common/controller/ai_response_model.dart';
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/features/chat/models/chat_models.dart';
 import 'package:lumen/features/chat/repo/chat_repo.dart';
+import 'package:lumen/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/common/controller/localization_controller.dart';
 
@@ -118,6 +120,40 @@ class ChatController extends GetxController implements GetxService {
     isLoadingMessages = false;
     update();
     scrollToBottom(animated: false);
+  }
+
+  String get selectedModelLabel {
+    try {
+      if (Get.isRegistered<DashboardController>()) {
+        final models = Get.find<DashboardController>().aiModelList;
+        final match = models.firstWhereOrNull(
+          (m) => (m.type == 'CHAT' || m.type == null) &&
+                 (m.modelId == selectedModel || m.id == selectedModel),
+        );
+        if (match?.label != null && match!.label!.trim().isNotEmpty) {
+          return match.label!.trim();
+        }
+        final defaultModel = models.firstWhereOrNull(
+          (m) => (m.type == 'CHAT' || m.type == null) && (m.isDefault == true),
+        );
+        if (defaultModel?.label != null && defaultModel!.label!.trim().isNotEmpty) {
+          return defaultModel.label!.trim();
+        }
+      }
+    } catch (_) {}
+    return selectedModel == 'gpt-4o-mini' ? 'Yumpass AI Fast' : selectedModel;
+  }
+
+  void syncModelsFromDashboard(List<AiModel> models) {
+    final chatModels = models.where((m) => m.type == 'CHAT' || m.type == null).toList();
+    if (chatModels.isEmpty) return;
+
+    final hasCurrent = chatModels.any((m) => m.modelId == selectedModel || m.id == selectedModel);
+    if (!hasCurrent || selectedModel == 'gpt-4o-mini') {
+      final defaultModel = chatModels.firstWhereOrNull((m) => m.isDefault == true) ?? chatModels.first;
+      selectedModel = defaultModel.modelId ?? defaultModel.id ?? 'gpt-4o-mini';
+    }
+    update();
   }
 
   void setModel(String model) {

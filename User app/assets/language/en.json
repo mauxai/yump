@@ -456,5 +456,10 @@
   "quick_prompt_letter_title": "Draft Official Letter",
   "quick_prompt_letter_desc": "Draft a formal application letter in English and Assamese addressed to the District Commissioner (DC) or Circle Officer.",
   "quick_prompt_startup_title": "Assam Startup Grants",
-  "quick_prompt_startup_desc": "What funding grants, incubation facilities, and eligibility rules are available under the Assam Startup policy (The Nest)?"
+  "quick_prompt_startup_desc": "What funding grants, incubation facilities, and eligibility rules are available under the Assam Startup policy (The Nest)?",
+  "listening": "Listening...",
+  "speech_not_available": "Speech recognition is not available on this device",
+  "speech_permission_denied": "Microphone permission is required for voice input",
+  "tap_to_speak": "Tap to speak",
+  "tap_to_stop": "Tap to stop"
 }

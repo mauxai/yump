@@ -49,7 +49,7 @@ class ChatModelSelectorSheet extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Center(
                       child: Text(
-                        'gpt-4o-mini',
+                        chatCtrl.selectedModelLabel,
                         style: robotoMedium.copyWith(color: AppColors.gradientStart),
                       ),
                     ),
@@ -90,24 +90,13 @@ class ChatModelSelectorSheet extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        m.label ?? m.modelId ?? '',
-                                        style: robotoMedium.copyWith(
-                                          color: isSelected ? AppColors.gradientStart : Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                      ),
-                                      if (m.provider != null)
-                                        Text(
-                                          m.provider!.toUpperCase(),
-                                          style: robotoRegular.copyWith(
-                                            fontSize: 10,
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                    ],
+                                  child: Text(
+                                    (m.label != null && m.label!.trim().isNotEmpty)
+                                        ? m.label!.trim()
+                                        : (m.modelId ?? 'AI Model'),
+                                    style: robotoMedium.copyWith(
+                                      color: isSelected ? AppColors.gradientStart : Theme.of(context).colorScheme.onSurface,
+                                    ),
                                   ),
                                 ),
                                 if (isSelected)

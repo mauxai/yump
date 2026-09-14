@@ -6,7 +6,6 @@ import 'package:lumen/features/chat/views/chat_view.dart';
 import 'package:lumen/features/creations/views/creations_view.dart';
 import 'package:lumen/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:lumen/features/dashboard/widgets/dashboard_bottom_nav.dart';
-import 'package:lumen/features/dashboard/widgets/dashboard_fab.dart';
 import 'package:lumen/features/home/views/home_view.dart';
 import 'package:lumen/features/profile/views/profile_view.dart';
 import 'package:lumen/features/upgrade/widgets/plan_purchase_success_dialog.dart';
@@ -45,35 +44,36 @@ class DashboardView extends GetView<DashboardController> {
         }
       },
       builder: (controller) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) async {
-          if (didPop) return;
-          // From any secondary tab, back returns to Home first.
-          if (controller.currentIndex != 0) {
-            controller.changeTab(0);
-            return;
-          }
-          // On Home, confirm before leaving the app.
-          if (context.mounted) await ExitConfirmDialog.handleBack(context);
-        },
-        child: Scaffold(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: IndexedStack(
-            index: controller.currentIndex,
-            children: const [
-              ChatView(),
-              HomeView(),
-              SizedBox.shrink(),
-              CreationsView(),
-              ProfileView(),
-            ],
+        final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (didPop) return;
+            // From any secondary tab, back returns to Chat first.
+            if (controller.currentIndex != 0) {
+              controller.changeTab(0);
+              return;
+            }
+            // On Chat, confirm before leaving the app.
+            if (context.mounted) await ExitConfirmDialog.handleBack(context);
+          },
+          child: Scaffold(
+            resizeToAvoidBottomInset: false,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            body: IndexedStack(
+              index: controller.currentIndex,
+              children: const [
+                ChatView(),
+                HomeView(),
+                SizedBox.shrink(),
+                CreationsView(),
+                ProfileView(),
+              ],
+            ),
+            bottomNavigationBar: isKeyboardOpen ? null : const DashboardBottomNav(),
           ),
-          floatingActionButton: DashboardFab(onTap: controller.onFabTap),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: const DashboardBottomNav(),
-        ),
-      );
+        );
     });
   }
 }

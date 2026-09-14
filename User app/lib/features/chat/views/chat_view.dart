@@ -52,7 +52,7 @@ class ChatView extends GetView<ChatController> {
                     const Icon(Icons.auto_awesome, size: 14, color: AppColors.gradientStart),
                     const SizedBox(width: 6),
                     Text(
-                      c.selectedModel,
+                      c.selectedModelLabel,
                       style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall),
                     ),
                     const SizedBox(width: 4),

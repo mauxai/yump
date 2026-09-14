@@ -7,6 +7,7 @@ import 'package:lumen/features/activity/controllers/activity_controller.dart';
 import 'package:lumen/features/dashboard/repos/dashboard_repo.dart';
 import 'package:lumen/features/notification/controllers/notification_controller.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
+import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/features/projects/controllers/projects_controller.dart';
 import 'package:lumen/features/dashboard/widgets/dashboard_create_sheet.dart';
 import 'package:lumen/helper/route_helper.dart';
@@ -40,6 +41,9 @@ class DashboardController extends GetxController implements GetxService {
     final response = await _dashboardRepo.getAiProviders();
     if (response.statusCode == 200 && response.body != null) {
       aiModelList = AiResponseModel.fromJson(response.body).aiModelList ?? [];
+      if (Get.isRegistered<ChatController>()) {
+        Get.find<ChatController>().syncModelsFromDashboard(aiModelList);
+      }
       update();
     }
   }

@@ -35,6 +35,7 @@ import 'package:lumen/features/gallery/controllers/cloud_gallery_controller.dart
 import 'package:lumen/features/gallery/repo/cloud_gallery_repo.dart';
 import 'package:lumen/features/analytics/controllers/analytics_controller.dart';
 import 'package:lumen/features/analytics/repo/analytics_repo.dart';
+import 'package:lumen/common/controller/voice_input_controller.dart';
 import 'package:lumen/util/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -82,6 +83,7 @@ class DependencyInjection {
     Get.lazyPut(() => VideoStudioController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => CloudGalleryController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => AnalyticsController(repo: Get.find()), fenix: true);
+    Get.lazyPut(() => VoiceInputController(), fenix: true);
 
     Map<String, Map<String, String>> languages = {};
     for(LanguageModel languageModel in AppConstants.languages) {
