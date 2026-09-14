@@ -17,9 +17,13 @@ class EditorToolsRow extends StatelessWidget {
       child: GetBuilder<EditorController>(builder: (ctrl) {
         final selected = ctrl.selectedTool;
         final isLocked = ctrl.isGenerating;
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: AppConstants.editorTools.map((tool) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: AppConstants.editorTools.map((tool) {
             final id = tool['id'] as EditorTool;
             final isSelected = selected == id;
             return ToolButton(
@@ -49,9 +53,11 @@ class EditorToolsRow extends StatelessWidget {
                     ctrl.selectTool(EditorTool.color);
                 }
               },
-            );
-          }).toList(),
-        );
+              );
+            }).toList(),
+          ),
+        ),
+      );
       }),
     );
   }

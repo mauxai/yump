@@ -105,7 +105,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
             color: Theme.of(context).cardColor,
             border: Border(
               top: BorderSide(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -156,7 +156,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                 Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.gradientStart),
+                       icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.gradientStart),
                       onPressed: ctrl.isStreaming ? null : _pickAttachment,
                     ),
                     Expanded(
@@ -166,7 +166,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                           color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                           ),
                         ),
                         child: TextField(
@@ -179,7 +179,7 @@ class _ChatInputSectionState extends State<ChatInputSection> {
                           decoration: InputDecoration(
                             hintText: 'ask_anything'.tr,
                             hintStyle: robotoRegular.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                               fontSize: Dimensions.fontSizeDefault,
                             ),
                             border: InputBorder.none,

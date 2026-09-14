@@ -440,7 +440,7 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
                             style: robotoBold.copyWith(fontSize: 11, color: AppColors.gradientEnd),
                           ),
                           TextSpan(
-                            text: ' ${'per_prompt'.tr}',
+                            text: ' ${(creditCost == 1 ? 'credit_per_prompt' : 'per_prompt').tr}',
                             style: robotoRegular.copyWith(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
                           ),
                         ]),
@@ -579,7 +579,7 @@ class _EditorPromptInputState extends State<EditorPromptInput> {
 
                       Flexible(
                         child: Text(
-                          modelLabel,
+                          modelLabel.contains('(') ? modelLabel.split('(').first.trim() : modelLabel,
                           style: robotoMedium.copyWith(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/features/chat/models/chat_models.dart';
@@ -13,10 +14,28 @@ class ChatController extends GetxController implements GetxService {
 
   ChatController({required ChatRepo chatRepo}) : _chatRepo = chatRepo;
 
+  final ScrollController scrollController = ScrollController();
+
   bool isLoadingConversations = false;
   bool isLoadingMessages = false;
   bool isStreaming = false;
   bool isUploadingAttachment = false;
+
+  void scrollToBottom({bool animated = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (scrollController.hasClients) {
+        if (animated) {
+          scrollController.animateTo(
+            scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        } else {
+          scrollController.jumpTo(scrollController.position.maxScrollExtent);
+        }
+      }
+    });
+  }
 
   List<ConversationModel> conversations = [];
   List<ChatMessageModel> messages = [];
@@ -98,6 +117,7 @@ class ChatController extends GetxController implements GetxService {
 
     isLoadingMessages = false;
     update();
+    scrollToBottom(animated: false);
   }
 
   void setModel(String model) {
@@ -154,6 +174,7 @@ class ChatController extends GetxController implements GetxService {
 
     isStreaming = true;
     update();
+    scrollToBottom();
 
     final String currentLang = Get.isRegistered<LocalizationController>()
         ? Get.find<LocalizationController>().locale.languageCode
@@ -194,6 +215,7 @@ class ChatController extends GetxController implements GetxService {
     final jsonStr = trimmed.substring(5).trim();
     if (jsonStr == '[DONE]') {
       assistantMessage.isStreaming = false;
+      assistantMessage.isSearching = false;
       isStreaming = false;
       update();
       return;
@@ -211,6 +233,15 @@ class ChatController extends GetxController implements GetxService {
       } else if (type == 'token') {
         assistantMessage.content += (data['text'] ?? '');
         update();
+        scrollToBottom();
+      } else if (type == 'tool_start') {
+        assistantMessage.isSearching = true;
+        final input = data['input'] as Map<String, dynamic>?;
+        assistantMessage.searchQuery = input?['query']?.toString();
+        update();
+      } else if (type == 'tool_end') {
+        assistantMessage.isSearching = false;
+        update();
       } else if (type == 'sources') {
         final citations = data['citations'] as List? ?? [];
         assistantMessage.citations.addAll(citations.map((c) => ChatCitation.fromJson(c)));
@@ -218,11 +249,16 @@ class ChatController extends GetxController implements GetxService {
       } else if (type == 'done') {
         assistantMessage.id = data['messageId'] ?? assistantMessage.id;
         assistantMessage.isStreaming = false;
+        assistantMessage.isSearching = false;
         isStreaming = false;
         update();
+        if (activeConversationId != null && messages.where((m) => m.role == 'assistant').length == 1) {
+          _generateTitleForActiveConversation();
+        }
       } else if (type == 'error') {
         assistantMessage.content += '\n\n*${data['error'] ?? 'generation_error'.tr}*';
         assistantMessage.isStreaming = false;
+        assistantMessage.isSearching = false;
         isStreaming = false;
         showCustomSnackBar(data['error'] ?? 'generation_error'.tr);
         update();
@@ -230,10 +266,81 @@ class ChatController extends GetxController implements GetxService {
     } catch (_) {}
   }
 
+  Future<void> _generateTitleForActiveConversation() async {
+    if (activeConversationId == null) return;
+    try {
+      final res = await _chatRepo.generateTitle(activeConversationId!);
+      if (res.statusCode == 200 && res.body != null && res.body['title'] != null) {
+        final newTitle = res.body['title'].toString();
+        final idx = conversations.indexWhere((c) => c.id == activeConversationId);
+        if (idx != -1) {
+          conversations[idx] = conversations[idx].copyWith(title: newTitle);
+          update();
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> regenerateMessage(String messageId) async {
+    if (isStreaming) return;
+    final msgIndex = messages.indexWhere((m) => m.id == messageId && m.role == 'assistant');
+    if (msgIndex == -1) return;
+
+    // Find previous user message
+    ChatMessageModel? lastUserMsg;
+    for (int i = msgIndex - 1; i >= 0; i--) {
+      if (messages[i].role == 'user') {
+        lastUserMsg = messages[i];
+        break;
+      }
+    }
+    if (lastUserMsg == null) return;
+
+    final targetAssistantMsg = messages[msgIndex];
+    targetAssistantMsg.content = '';
+    targetAssistantMsg.citations.clear();
+    targetAssistantMsg.isStreaming = true;
+    targetAssistantMsg.isSearching = false;
+    isStreaming = true;
+    update();
+
+    final String currentLang = Get.isRegistered<LocalizationController>()
+        ? Get.find<LocalizationController>().locale.languageCode
+        : 'as';
+
+    final stream = _chatRepo.sendChatMessageStream(
+      message: lastUserMsg.content,
+      conversationId: activeConversationId,
+      model: selectedModel,
+      language: currentLang,
+      attachmentIds: lastUserMsg.attachments.map((a) => a.id).toList(),
+      regenerateMessageId: messageId,
+    );
+
+    _streamSub = stream.listen(
+      (chunk) {
+        _handleStreamChunk(chunk, targetAssistantMsg);
+      },
+      onError: (err) {
+        targetAssistantMsg.content += '\n\n*${'streaming_error'.tr}*';
+        targetAssistantMsg.isStreaming = false;
+        isStreaming = false;
+        update();
+      },
+      onDone: () {
+        targetAssistantMsg.isStreaming = false;
+        isStreaming = false;
+        update();
+        Get.find<ProfileController>().fetchProfile();
+      },
+    );
+  }
+
   void stopStreaming() {
     _streamSub?.cancel();
     if (messages.isNotEmpty && messages.last.isStreaming) {
       messages.last.isStreaming = false;
+      messages.last.isSearching = false;
     }
     isStreaming = false;
     update();
@@ -271,7 +378,7 @@ class ChatController extends GetxController implements GetxService {
     }
   }
 
-  Future<void> sendFeedback(String messageId, int rating, {String? feedback}) async {
+  Future<void> sendFeedback(String messageId, String rating, {String? feedback}) async {
     final response = await _chatRepo.sendFeedback(messageId: messageId, rating: rating, feedback: feedback);
     if (response.statusCode == 200) {
       showCustomSnackBar('thank_you_for_feedback'.tr, isError: false);
@@ -281,6 +388,7 @@ class ChatController extends GetxController implements GetxService {
   @override
   void onClose() {
     _streamSub?.cancel();
+    scrollController.dispose();
     super.onClose();
   }
 }

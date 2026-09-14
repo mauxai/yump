@@ -33,7 +33,7 @@ class ChatModelSelectorSheet extends StatelessWidget {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+                      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -74,7 +74,7 @@ class ChatModelSelectorSheet extends StatelessWidget {
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.gradientStart.withOpacity(0.1)
+                                  ? AppColors.gradientStart.withValues(alpha: 0.1)
                                   : Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
                               border: Border.all(

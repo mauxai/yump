@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
+import 'package:lumen/util/app_constants.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileAccountSection extends GetView<ProfileController> {
   const ProfileAccountSection({super.key});
@@ -70,9 +72,9 @@ class ProfileAccountSection extends GetView<ProfileController> {
               Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
               _ProfileAccountTile(
                 icon: Icons.privacy_tip_outlined,
-                title: 'Privacy Policy',
+                title: 'privacy_policy'.tr,
                 onTap: () async {
-                  final Uri url = Uri.parse('https://yumpass.ai/privacy-policy');
+                  final Uri url = Uri.parse('${AppConstants.baseUrl}/privacy-policy');
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
@@ -135,11 +137,11 @@ class ProfileAccountSection extends GetView<ProfileController> {
           ElevatedButton(
             onPressed: () async {
               if (newPass.text.trim().length < 8) {
-                Get.snackbar('error'.tr, 'password_min_length'.tr);
+                showCustomSnackBar('password_min_length'.tr);
                 return;
               }
               if (newPass.text != confirmPass.text) {
-                Get.snackbar('error'.tr, 'passwords_do_not_match'.tr);
+                showCustomSnackBar('passwords_do_not_match'.tr);
                 return;
               }
               final ok = await controller.changePassword(
@@ -184,7 +186,7 @@ class ProfileAccountSection extends GetView<ProfileController> {
           ElevatedButton(
             onPressed: () async {
               if (!newEmail.text.contains('@')) {
-                Get.snackbar('error'.tr, 'invalid_email'.tr);
+                showCustomSnackBar('invalid_email'.tr);
                 return;
               }
               final ok = await controller.changeEmail(

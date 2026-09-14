@@ -69,13 +69,14 @@ class ApiClient extends GetxService {
   }
 
   Stream<String> postStream(String uri, dynamic body, {Map<String, String>? headers}) async* {
+    http.Client? client;
     try {
       final request = http.Request('POST', Uri.parse(appBaseUrl + uri));
       request.headers.addAll(headers ?? _mainHeaders);
       request.headers['Accept'] = 'text/event-stream';
       request.body = jsonEncode(body);
 
-      final client = http.Client();
+      client = http.Client();
       final streamedResponse = await client.send(request);
 
       if (streamedResponse.statusCode != 200) {
@@ -91,6 +92,8 @@ class ApiClient extends GetxService {
       }
     } catch (e) {
       yield 'data: {"type":"error","error":"$e"}';
+    } finally {
+      client?.close();
     }
   }
 
@@ -112,7 +115,7 @@ class ApiClient extends GetxService {
           }else {
             File file = File(multipart.file!.path);
             request.files.add(http.MultipartFile(
-              multipart.key, file.readAsBytes().asStream(), file.lengthSync(), filename: file.path.split('/').last,
+              multipart.key, file.readAsBytes().asStream(), file.lengthSync(), filename: basename(file.path),
             ));
           }
         }
@@ -128,6 +131,21 @@ class ApiClient extends GetxService {
       }
       request.fields.addAll(body);
       http.Response response = await http.Response.fromStream(await request.send());
+      return handleResponse(response, uri, handleError);
+    } catch (e) {
+      return const Response(statusCode: 1, statusText: noInternetMessage);
+    }
+  }
+
+  Future<Response> patchData(String uri, dynamic body, {Map<String, String>? headers, bool handleError = true}) async {
+    try {
+      debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
+      debugPrint('====> API Body: $body');
+      http.Response response = await http.patch(
+        Uri.parse(appBaseUrl+uri),
+        body: jsonEncode(body),
+        headers: headers ?? _mainHeaders,
+      ).timeout(Duration(seconds: timeoutInSeconds));
       return handleResponse(response, uri, handleError);
     } catch (e) {
       return const Response(statusCode: 1, statusText: noInternetMessage);

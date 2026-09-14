@@ -31,14 +31,14 @@ class DashboardBottomNav extends GetView<DashboardController> {
               children: [
                 DashboardNavItem(
                   isSelected: controller.currentIndex == 0,
-                  icon: Icons.home_rounded,
-                  label: 'home'.tr,
+                  icon: Icons.forum_rounded,
+                  label: 'ai_chat'.tr,
                   onTap: () => controller.changeTab(0),
                 ),
                 DashboardNavItem(
                   isSelected: controller.currentIndex == 1,
-                  icon: Icons.forum_outlined,
-                  label: 'chat'.tr,
+                  icon: Icons.auto_fix_high_rounded,
+                  label: 'studio'.tr,
                   onTap: () => controller.changeTab(1),
                 ),
                 const SizedBox(width: 56),

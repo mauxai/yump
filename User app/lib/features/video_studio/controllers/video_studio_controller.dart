@@ -103,6 +103,9 @@ class VideoStudioController extends GetxController implements GetxService {
     }
 
     final profileCtrl = Get.find<ProfileController>();
+    if (profileCtrl.user == null) {
+      await profileCtrl.fetchProfile();
+    }
     final creditsLeft = (profileCtrl.user?.creditsTotal ?? 0) - (profileCtrl.user?.creditsUsed ?? 0);
     if (creditsLeft < selectedModel.creditCost) {
       showCustomSnackBar('insufficient_credits_for_video'.tr);

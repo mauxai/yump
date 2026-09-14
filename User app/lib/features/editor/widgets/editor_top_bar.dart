@@ -23,28 +23,34 @@ class EditorTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child: GetBuilder<EditorController>(builder: (ctrl) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      ctrl.projectName,
-                      style: robotoBold.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 16,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+            child: GetBuilder<EditorController>(builder: (ctrl) {
+              final displayName = (ctrl.projectName.trim().isEmpty || ctrl.projectName.trim() == '.')
+                  ? 'untitled_project'.tr
+                  : ctrl.projectName;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    displayName,
+                    style: robotoBold.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontSize: 16,
                     ),
-                    if (ctrl.versionLabel.isNotEmpty)
-                      Text(
-                        ctrl.versionLabel,
-                        style: robotoRegular.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 12,
-                        ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (ctrl.versionLabel.isNotEmpty)
+                    Text(
+                      ctrl.versionLabel,
+                      style: robotoRegular.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontSize: 12,
                       ),
-                  ],
-                )),
+                    ),
+                ],
+              );
+            }),
           ),
           const SizedBox(width: 8),
           GetBuilder<EditorController>(builder: (ctrl) => TopBarIconButton(

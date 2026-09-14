@@ -62,6 +62,8 @@ class ChatMessageModel {
   final List<ChatCitation> citations;
   final List<ChatAttachment> attachments;
   bool isStreaming;
+  bool isSearching;
+  String? searchQuery;
 
   ChatMessageModel({
     required this.id,
@@ -72,6 +74,8 @@ class ChatMessageModel {
     List<ChatCitation>? citations,
     List<ChatAttachment>? attachments,
     this.isStreaming = false,
+    this.isSearching = false,
+    this.searchQuery,
   })  : createdAt = createdAt ?? DateTime.now(),
         citations = citations ?? [],
         attachments = attachments ?? [];

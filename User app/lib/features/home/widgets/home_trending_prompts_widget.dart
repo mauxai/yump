@@ -41,36 +41,40 @@ class HomeTrendingPrompts extends StatelessWidget {
         else
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
             child: Row(
-              children: List.generate(prompts.length, (i) {
-                final color = _chipColors[i % _chipColors.length];
-                final label = prompts[i];
+              children: [
+                ...List.generate(prompts.length, (i) {
+                  final color = _chipColors[i % _chipColors.length];
+                  final label = prompts[i];
 
-                return GestureDetector(
-                  onTap: () => onPromptTap(label),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: Dimensions.paddingSizeEight),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(Dimensions.paddingSizeLarge),
-                      border: Border.all(color: Theme.of(context).colorScheme.outline),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Container(width: 8, height: 8,
-                        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                  return GestureDetector(
+                    onTap: () => onPromptTap(label),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: Dimensions.paddingSizeEight),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(Dimensions.paddingSizeLarge),
+                        border: Border.all(color: Theme.of(context).colorScheme.outline),
                       ),
+                      child: Row(mainAxisSize: MainAxisSize.min, children: [
+                        Container(width: 8, height: 8,
+                          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                        ),
 
-                      const SizedBox(width: 6),
+                        const SizedBox(width: 6),
 
-                      Text(label, style: robotoRegular.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: 13,
-                      )),
-                    ]),
-                  ),
-                );
-              }),
+                        Text(label, style: robotoRegular.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontSize: 13,
+                        )),
+                      ]),
+                    ),
+                  );
+                }),
+                const SizedBox(width: Dimensions.paddingSizeSmall),
+              ],
             ),
           ),
       ],

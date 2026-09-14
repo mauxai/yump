@@ -79,7 +79,7 @@ class _HomeViewState extends State<HomeView> {
                            const SizedBox(height: Dimensions.fontSizeOverLarge),
                            const HomeProjectsSectionWidget(),
                            const HomeGallerySection(),
-                           const SizedBox(height: 100),
+                           const SizedBox(height: 130),
                          ],
                        ),
                      ),

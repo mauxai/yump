@@ -227,7 +227,11 @@ class _HomeCreateProjectSheetState extends State<HomeCreateProjectSheet> {
             return CustomGradientButton(
               text: 'create_project'.tr,
               isLoading: c.isCreatingProject,
-              onTap: () => c.createProject(_nameCtrl.text.trim(), widget.imagePath, initialPrompt: widget.initialPrompt),
+              onTap: () {
+                final rawName = _nameCtrl.text.trim();
+                final name = rawName.isEmpty || rawName == '.' ? 'untitled_project'.tr : rawName;
+                c.createProject(name, widget.imagePath, initialPrompt: widget.initialPrompt);
+              },
             );
           }),
         ],

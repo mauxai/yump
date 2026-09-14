@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/video_studio/models/video_models.dart';
+import 'package:lumen/util/app_constants.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
 import 'package:path_provider/path_provider.dart';
@@ -40,7 +41,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     }
 
     try {
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.video.videoUrl!));
+      String url = widget.video.videoUrl!;
+      if (!url.startsWith('http')) {
+        url = '${AppConstants.baseUrl}${url.startsWith('/') ? '' : '/'}$url';
+      }
+      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(url));
       await _videoPlayerController!.initialize();
 
       _chewieController = ChewieController(
@@ -68,7 +73,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     setState(() => _isDownloading = true);
 
     try {
-      final res = await http.get(Uri.parse(widget.video.videoUrl!));
+      String url = widget.video.videoUrl!;
+      if (!url.startsWith('http')) {
+        url = '${AppConstants.baseUrl}${url.startsWith('/') ? '' : '/'}$url';
+      }
+      final res = await http.get(Uri.parse(url));
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/video_${widget.video.id}.mp4';
       final file = File(filePath);

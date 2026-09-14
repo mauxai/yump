@@ -5,7 +5,9 @@ import 'package:lumen/common/widgets/custom_appbar_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/gallery/controllers/cloud_gallery_controller.dart';
 import 'package:lumen/features/gallery/models/cloud_edit_model.dart';
+import 'package:lumen/features/projects/controllers/projects_controller.dart';
 import 'package:lumen/features/projects/views/projects_view.dart';
+import 'package:lumen/features/projects/widgets/projects_view_toggle_widget.dart';
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
 import 'package:lumen/util/dimensions.dart';
@@ -75,22 +77,31 @@ class _CreationsViewState extends State<CreationsView> with SingleTickerProvider
               ChoiceChip(
                 label: Text('projects'.tr),
                 selected: _imageSubIndex == 0,
-                selectedColor: AppColors.gradientStart.withOpacity(0.2),
+                selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                 onSelected: (_) => setState(() => _imageSubIndex = 0),
               ),
               const SizedBox(width: 8),
               ChoiceChip(
                 label: Text('cloud_gallery'.tr),
                 selected: _imageSubIndex == 1,
-                selectedColor: AppColors.gradientStart.withOpacity(0.2),
+                selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                 onSelected: (_) => setState(() => _imageSubIndex = 1),
               ),
+              if (_imageSubIndex == 0) ...[
+                const Spacer(),
+                GetBuilder<ProjectsController>(
+                  builder: (controller) => ProjectsViewToggleWidget(
+                    isGrid: controller.isGridView,
+                    onToggle: controller.toggleView,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
         Expanded(
           child: _imageSubIndex == 0
-              ? const ProjectsView()
+              ? const ProjectsView(showHeader: false)
               : _buildCloudGalleryGrid(context),
         ),
       ],

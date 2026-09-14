@@ -188,7 +188,7 @@ class _ChatDrawerWidgetState extends State<ChatDrawerWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 2),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.gradientStart.withOpacity(0.12) : Colors.transparent,
+        color: isSelected ? AppColors.gradientStart.withValues(alpha: 0.12) : Colors.transparent,
         borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
       ),
       child: ListTile(

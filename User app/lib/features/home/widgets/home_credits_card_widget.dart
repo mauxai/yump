@@ -74,7 +74,21 @@ class HomeCreditsCard extends StatelessWidget {
                   ),
                 )
               else
-                const SizedBox.shrink(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                  ),
+                  child: Text(
+                    'free_plan'.tr,
+                    style: robotoMedium.copyWith(
+                      color: Colors.white,
+                      fontSize: Dimensions.fontSizeSmall,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
               GestureDetector(
                 onTap: () => Get.toNamed(RouteHelper.getUpgradeRoute()),
                 child: Container(

@@ -24,7 +24,7 @@ class ToolButton extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: Dimensions.fontSizeDefault, vertical: Dimensions.paddingSizeEight),
+        padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeEight),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.purpleAccent.withValues(alpha: 0.85)

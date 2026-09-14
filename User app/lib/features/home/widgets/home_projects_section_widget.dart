@@ -41,7 +41,9 @@ class HomeProjectsSectionWidget extends StatelessWidget {
                         ),
                       )
                     : Text(
-                        'projects_count'.trParams({'count': '${projects.length}'}),
+                        projects.length == 1
+                            ? 'projects_count_single'.trParams({'count': '1'})
+                            : 'projects_count_plural'.trParams({'count': '${projects.length}'}),
                         style: robotoRegular.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: Dimensions.fontSizeDefault - 1,

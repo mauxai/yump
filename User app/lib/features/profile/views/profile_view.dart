@@ -41,7 +41,7 @@ class ProfileView extends StatelessWidget {
                         const SizedBox(height: 28),
 
                         ProfileAvatarSection(
-                          userName: controller.user?.name ?? 'Alex',
+                          userName: controller.user?.name ?? 'user'.tr,
                           userEmail: controller.user?.email ?? '',
                           userPhoto: controller.user?.avatar ?? '',
                         ),

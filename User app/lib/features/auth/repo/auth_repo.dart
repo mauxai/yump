@@ -169,12 +169,12 @@ class AuthRepo {
         deviceToken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
         if (kDebugMode) {
-          print('token error : $e');
+          debugPrint('token error : $e');
         }
       }
     }
     if (kDebugMode && deviceToken != null) {
-      print('--------Device Token---------- $deviceToken');
+      debugPrint('--------Device Token---------- $deviceToken');
     }
     return deviceToken;
   }

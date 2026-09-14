@@ -36,6 +36,7 @@ class ChatRepo {
     String? model,
     String? language,
     List<String>? attachmentIds,
+    String? regenerateMessageId,
   }) {
     final body = {
       'message': message,
@@ -43,6 +44,7 @@ class ChatRepo {
       if (model != null) 'model': model,
       if (language != null) 'language': language,
       if (attachmentIds != null && attachmentIds.isNotEmpty) 'attachmentIds': attachmentIds,
+      if (regenerateMessageId != null) 'regenerateMessageId': regenerateMessageId,
     };
     return apiClient.postStream(AppConstants.chatUri, body);
   }
@@ -60,7 +62,7 @@ class ChatRepo {
     if (archived != null) body['archived'] = archived;
     if (model != null) body['model'] = model;
 
-    return await apiClient.putData('${AppConstants.conversationsUri}/$id', body);
+    return await apiClient.patchData('${AppConstants.conversationsUri}/$id', body);
   }
 
   Future<Response> deleteConversation(String id) async {
@@ -69,7 +71,7 @@ class ChatRepo {
 
   Future<Response> sendFeedback({
     required String messageId,
-    required int rating,
+    required String rating,
     String? feedback,
   }) async {
     return await apiClient.postData(AppConstants.chatFeedbackUri, {
@@ -77,6 +79,10 @@ class ChatRepo {
       'rating': rating,
       if (feedback != null) 'feedback': feedback,
     });
+  }
+
+  Future<Response> generateTitle(String conversationId) async {
+    return await apiClient.postData('${AppConstants.conversationsUri}/$conversationId/title', {});
   }
 
   Future<Response> uploadAttachment(File file, {String? conversationId}) async {

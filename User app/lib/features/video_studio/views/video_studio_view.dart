@@ -22,11 +22,11 @@ class VideoStudioView extends GetView<VideoStudioController> {
         title: 'video_studio'.tr,
         showBackButton: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(Dimensions.paddingSizeLarge),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(Dimensions.paddingSizeLarge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             _VideoFormSection(),
             SizedBox(height: 24),
             _VideoGallerySection(),
@@ -101,7 +101,7 @@ class _VideoFormSectionState extends State<_VideoFormSection> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.gradientStart.withOpacity(0.12),
+                      color: AppColors.gradientStart.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -133,7 +133,7 @@ class _VideoFormSectionState extends State<_VideoFormSection> {
                       child: ChoiceChip(
                         label: Text(m.name, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall)),
                         selected: isSelected,
-                        selectedColor: AppColors.gradientStart.withOpacity(0.2),
+                        selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                         onSelected: (_) => ctrl.selectModel(m),
                       ),
                     );
@@ -246,7 +246,7 @@ class _VideoFormSectionState extends State<_VideoFormSection> {
                     child: ChoiceChip(
                       label: Text(ratio),
                       selected: ctrl.selectedAspectRatio == ratio,
-                      selectedColor: AppColors.gradientStart.withOpacity(0.2),
+                      selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                       onSelected: (_) => ctrl.selectAspectRatio(ratio),
                     ),
                   );
@@ -264,7 +264,7 @@ class _VideoFormSectionState extends State<_VideoFormSection> {
                     child: ChoiceChip(
                       label: Text('${d}s'),
                       selected: ctrl.selectedDuration == d,
-                      selectedColor: AppColors.gradientStart.withOpacity(0.2),
+                      selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                       onSelected: (_) => ctrl.selectDuration(d),
                     ),
                   );

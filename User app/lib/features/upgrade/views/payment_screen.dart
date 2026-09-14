@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -196,23 +197,60 @@ class MyInAppBrowser extends InAppBrowser {
   void onConsoleMessage(consoleMessage) {}
 
   void _pageRedirect(String url) async {
-    if (_canRedirect) {
-      bool isSuccess = url.contains('success') && url.contains(AppConstants.baseUrl);
-      bool isFailed = url.contains('fail') && url.contains(AppConstants.baseUrl);
-      bool isCancel = url.contains('cancel') && url.contains(AppConstants.baseUrl);
+    if (!_canRedirect) return;
 
-      if (isSuccess || isFailed || isCancel) {
-        _canRedirect = false;
-        close();
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+
+    final host = uri.host;
+    final isOurBase = url.contains(AppConstants.baseUrl) || (AppConstants.baseUrl.contains(host) && host.isNotEmpty);
+    if (!isOurBase) return;
+
+    final dataParam = uri.queryParameters['data'];
+
+    // If on /pay/success without ?data=, wait for the backend to verify session and redirect with ?data=
+    if (uri.path.contains('pay/success') && (dataParam == null || dataParam.isEmpty)) {
+      return;
+    }
+
+    bool? isSuccess;
+    String? errorMessage;
+
+    if (dataParam != null && dataParam.isNotEmpty) {
+      try {
+        final decodedStr = utf8.decode(base64Decode(Uri.decodeComponent(dataParam)));
+        final data = jsonDecode(decodedStr) as Map<String, dynamic>;
+        final status = data['payment_status']?.toString();
+        if (status == 'success') {
+          isSuccess = true;
+        } else {
+          isSuccess = false;
+          errorMessage = data['error']?.toString();
+        }
+      } catch (_) {}
+    }
+
+    if (isSuccess == null) {
+      if (uri.path.contains('cancel') || url.contains('cancel')) {
+        isSuccess = false;
+      } else if (uri.path.contains('fail') || url.contains('fail')) {
+        isSuccess = false;
+      } else if (uri.path.contains('success') || url.contains('success')) {
+        isSuccess = true;
       }
+    }
+
+    if (isSuccess != null) {
+      _canRedirect = false;
+      close();
 
       if (isSuccess) {
         Get.back();
         Get.find<ProfileController>().fetchProfile();
         Get.offAllNamed(RouteHelper.getDashboardRoute(), arguments: plan);
-      } else if (isFailed || isCancel) {
+      } else {
         Get.back();
-        showCustomSnackBar('transaction_failed'.tr);
+        showCustomSnackBar(errorMessage ?? 'transaction_failed'.tr);
       }
     }
   }

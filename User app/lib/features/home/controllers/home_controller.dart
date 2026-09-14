@@ -110,14 +110,13 @@ class HomeController extends GetxController implements GetxService{
   }
 
   Future<void> createProject(String name, String imagePath, {String? initialPrompt}) async {
-    if (name.isEmpty) {
-      showCustomSnackBar('fill_all_fields'.tr);
-      return;
-    }
+    final effectiveName = name.trim().isEmpty || name.trim() == '.'
+        ? 'untitled_project'.tr
+        : name.trim();
     isCreatingProject = true;
     update(['create_project']);
 
-    final response = await _projectsRepo.createProjectFromPath(name, imagePath);
+    final response = await _projectsRepo.createProjectFromPath(effectiveName, imagePath);
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final project = Projects.fromJson(response.body['project']);

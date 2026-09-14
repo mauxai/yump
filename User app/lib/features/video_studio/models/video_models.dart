@@ -1,3 +1,5 @@
+import 'package:lumen/util/app_constants.dart';
+
 class VideoModelDefinition {
   final String key;
   final String id;
@@ -119,6 +121,14 @@ class VideoRecord {
   bool get isFailed => status == 'FAILED';
 
   factory VideoRecord.fromJson(Map<String, dynamic> json) {
+    String? vUrl = json['videoUrl'];
+    if (vUrl != null && vUrl.isNotEmpty && !vUrl.startsWith('http') && !vUrl.startsWith('data:')) {
+      vUrl = '${AppConstants.baseUrl}${vUrl.startsWith('/') ? '' : '/'}$vUrl';
+    }
+    String? tUrl = json['thumbnailUrl'];
+    if (tUrl != null && tUrl.isNotEmpty && !tUrl.startsWith('http') && !tUrl.startsWith('data:')) {
+      tUrl = '${AppConstants.baseUrl}${tUrl.startsWith('/') ? '' : '/'}$tUrl';
+    }
     return VideoRecord(
       id: json['id'] ?? '',
       prompt: json['prompt'] ?? '',
@@ -128,8 +138,8 @@ class VideoRecord {
       modelId: json['modelId'] ?? '',
       duration: json['duration'] ?? 5,
       status: json['status'] ?? 'PENDING',
-      videoUrl: json['videoUrl'],
-      thumbnailUrl: json['thumbnailUrl'],
+      videoUrl: vUrl,
+      thumbnailUrl: tUrl,
       creditCost: json['creditCost'] ?? 5,
       errorMessage: json['errorMessage'],
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),

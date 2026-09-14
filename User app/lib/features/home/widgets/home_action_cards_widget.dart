@@ -20,10 +20,22 @@ class HomeActionCards extends StatelessWidget {
       children: [
         Expanded(
           child: _HomeActionCard(
-            icon: Icon(
-              Icons.camera_alt_outlined,
-              color: Theme.of(context).colorScheme.onSurface,
-              size: Dimensions.fontSizeOverLarge + Dimensions.radiusSmall - 1,
+            icon: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(Dimensions.fontSizeSmall),
+              ),
+              child: const Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
             ),
             title: 'camera'.tr,
             subtitle: 'take_photo'.tr,

@@ -62,8 +62,8 @@ class DashboardView extends GetView<DashboardController> {
           body: IndexedStack(
             index: controller.currentIndex,
             children: const [
-              HomeView(),
               ChatView(),
+              HomeView(),
               SizedBox.shrink(),
               CreationsView(),
               ProfileView(),

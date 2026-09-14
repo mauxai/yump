@@ -90,15 +90,16 @@ class HomeTopRow extends StatelessWidget {
             final unread = notificationController.unreadCount;
             return Stack(clipBehavior: Clip.none, children: [
               Container(
-                width: 40, height: 40,
+                width: 44, height: 44,
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 3),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
                 ),
                 child: Icon(
                   Icons.notifications_outlined,
                   color: Theme.of(context).colorScheme.onSurface,
-                  size: Dimensions.paddingSizeLarge,
+                  size: 22,
                 ),
               ),
               if (unread > 0)

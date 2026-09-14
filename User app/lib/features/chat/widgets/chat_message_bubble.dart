@@ -8,6 +8,7 @@ import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/features/chat/models/chat_models.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessageModel message;
@@ -30,16 +31,16 @@ class ChatMessageBubble extends StatelessWidget {
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
             colors: [AppColors.gradientStart, AppColors.gradientEnd],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(Dimensions.radiusLarge),
-            topRight: const Radius.circular(Dimensions.radiusLarge),
-            bottomLeft: const Radius.circular(Dimensions.radiusLarge),
+            topLeft: Radius.circular(Dimensions.radiusLarge),
+            topRight: Radius.circular(Dimensions.radiusLarge),
+            bottomLeft: Radius.circular(Dimensions.radiusLarge),
             bottomRight: Radius.circular(Dimensions.radiusSmall),
           ),
         ),
@@ -54,7 +55,7 @@ class ChatMessageBubble extends StatelessWidget {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
@@ -97,14 +98,14 @@ class ChatMessageBubble extends StatelessWidget {
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.88),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(Dimensions.radiusLarge),
-            topRight: const Radius.circular(Dimensions.radiusLarge),
-            bottomRight: const Radius.circular(Dimensions.radiusLarge),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(Dimensions.radiusLarge),
+            topRight: Radius.circular(Dimensions.radiusLarge),
+            bottomRight: Radius.circular(Dimensions.radiusLarge),
             bottomLeft: Radius.circular(Dimensions.radiusSmall),
           ),
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.5),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5),
             width: 1,
           ),
         ),
@@ -135,10 +136,44 @@ class ChatMessageBubble extends StatelessWidget {
                 ),
               ],
             ),
+            if (message.isSearching) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      message.searchQuery != null && message.searchQuery!.isNotEmpty
+                          ? '${'searching_web'.tr}: "${message.searchQuery}"'
+                          : 'searching_web'.tr,
+                      style: robotoRegular.copyWith(
+                        fontSize: Dimensions.fontSizeSmall,
+                        fontStyle: FontStyle.italic,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 8),
             MarkdownBody(
               data: message.content.isEmpty && message.isStreaming ? '...' : message.content,
               selectable: true,
+              onTapLink: (text, href, title) async {
+                if (href != null) {
+                  final uri = Uri.tryParse(href);
+                  if (uri != null && await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  }
+                }
+              },
               styleSheet: MarkdownStyleSheet(
                 p: robotoRegular.copyWith(
                   fontSize: Dimensions.fontSizeDefault,
@@ -166,22 +201,37 @@ class ChatMessageBubble extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 4,
                 children: message.citations.map((c) {
-                  return Chip(
+                  return ActionChip(
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                    avatar: const Icon(Icons.link, size: 12),
                     label: Text(c.title, style: robotoRegular.copyWith(fontSize: 10)),
                     backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                    onPressed: () async {
+                      final uri = Uri.tryParse(c.url);
+                      if (uri != null && await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
+                    },
                   );
                 }).toList(),
               ),
             ],
             if (!message.isStreaming && message.content.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Divider(height: 1, color: Theme.of(context).colorScheme.outline.withOpacity(0.3)),
+              Divider(height: 1, color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3)),
               const SizedBox(height: 4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    tooltip: 'regenerate_response'.tr,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      Get.find<ChatController>().regenerateMessage(message.id);
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Icons.copy_rounded, size: 16),
                     visualDensity: VisualDensity.compact,
@@ -194,14 +244,14 @@ class ChatMessageBubble extends StatelessWidget {
                     icon: const Icon(Icons.thumb_up_outlined, size: 16),
                     visualDensity: VisualDensity.compact,
                     onPressed: () {
-                      Get.find<ChatController>().sendFeedback(message.id, 1);
+                      Get.find<ChatController>().sendFeedback(message.id, 'up');
                     },
                   ),
                   IconButton(
                     icon: const Icon(Icons.thumb_down_outlined, size: 16),
                     visualDensity: VisualDensity.compact,
                     onPressed: () {
-                      Get.find<ChatController>().sendFeedback(message.id, -1);
+                      Get.find<ChatController>().sendFeedback(message.id, 'down');
                     },
                   ),
                 ],
