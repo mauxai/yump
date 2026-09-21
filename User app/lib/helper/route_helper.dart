@@ -14,6 +14,7 @@ import 'package:lumen/features/update/views/update_view.dart';
 import 'package:lumen/features/upgrade/views/upgrade_view.dart';
 import 'package:lumen/features/chat/views/chat_view.dart';
 import 'package:lumen/features/video_studio/views/video_studio_view.dart';
+import 'package:lumen/features/video_studio/views/video_editor_view.dart';
 import 'package:lumen/features/creations/views/creations_view.dart';
 import 'package:lumen/features/analytics/views/analytics_view.dart';
 
@@ -24,6 +25,7 @@ class RouteHelper {
   static const String dashboard = '/dashboard';
   static const String chat = '/chat';
   static const String videoStudio = '/video-studio';
+  static const String videoEditor = '/video-editor';
   static const String creations = '/creations';
   static const String analytics = '/analytics';
   static const String upgrade = '/upgrade';
@@ -41,6 +43,9 @@ class RouteHelper {
   static String getDashboardRoute({int pageIndex = 0}) => '$dashboard?pageIndex=$pageIndex';
   static String getChatRoute() => chat;
   static String getVideoStudioRoute() => videoStudio;
+  static String getVideoEditorRoute({String? initialVideoUrl}) => initialVideoUrl != null && initialVideoUrl.isNotEmpty
+      ? '$videoEditor?initialVideoUrl=${Uri.encodeComponent(initialVideoUrl)}'
+      : videoEditor;
   static String getCreationsRoute() => creations;
   static String getAnalyticsRoute() => analytics;
   static String getUpgradeRoute() => upgrade;
@@ -74,6 +79,14 @@ class RouteHelper {
     ),
     GetPage(name: chat, page: () => const ChatView()),
     GetPage(name: videoStudio, page: () => const VideoStudioView()),
+    GetPage(
+      name: videoEditor,
+      page: () => VideoEditorView(
+        initialVideoUrl: Get.parameters['initialVideoUrl'] == null
+            ? null
+            : Uri.decodeComponent(Get.parameters['initialVideoUrl']!),
+      ),
+    ),
     GetPage(name: creations, page: () => const CreationsView()),
     GetPage(name: analytics, page: () => const AnalyticsView()),
     GetPage(name: upgrade, page: () => const UpgradeView()),

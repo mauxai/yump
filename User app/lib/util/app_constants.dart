@@ -50,6 +50,13 @@ class AppConstants {
   static const String videoModelsUri = '/api/v1/video/models';
   static const String videoDeleteUri = '/api/v1/video/'; // + [id] (DELETE)
 
+  // Video Editing (Shotstack)
+  static const String videoEditRenderUri = '/api/v1/video/edit/render';
+  static const String videoEditUploadUri = '/api/v1/video/edit/upload';
+  static const String videoEditStatusUri = '/api/v1/video/edit/'; // + [id] + /status
+  static const String videoEditGalleryUri = '/api/v1/video/edit/gallery';
+  static const String videoEditDeleteUri = '/api/v1/video/edit/'; // + [id] (DELETE)
+
   // Cloud Gallery
   static const String cloudGalleryUri = '/api/v1/gallery';
 
@@ -104,5 +111,40 @@ class AppConstants {
     {'label': '3:4', 'value': '3:4'},
   ];
 
+  static const List<String> videoAspectRatios = ['16:9', '9:16', '1:1'];
 
+  static const List<Map<String, String>> videoTransitions = [
+    {'label': 'none', 'value': ''},
+    {'label': 'fade', 'value': 'fade'},
+    {'label': 'wipe_left', 'value': 'wipeLeft'},
+    {'label': 'wipe_right', 'value': 'wipeRight'},
+    {'label': 'slide_left', 'value': 'slideLeft'},
+    {'label': 'slide_right', 'value': 'slideRight'},
+    {'label': 'slide_up', 'value': 'slideUp'},
+    {'label': 'slide_down', 'value': 'slideDown'},
+  ];
+
+  static const List<Map<String, String>> videoFilters = [
+    {'label': 'none', 'value': ''},
+    {'label': 'filter_greyscale', 'value': 'greyscale'},
+    {'label': 'filter_sepia', 'value': 'sepia'},
+    {'label': 'filter_blur', 'value': 'blur'},
+    {'label': 'filter_boost', 'value': 'boost'},
+    {'label': 'filter_contrast', 'value': 'contrast'},
+    {'label': 'filter_darken', 'value': 'darken'},
+    {'label': 'filter_lighten', 'value': 'lighten'},
+  ];
+
+  static const List<Map<String, String>> videoTextStyles = [
+    {'label': 'style_minimal', 'value': 'minimal'},
+    {'label': 'style_block', 'value': 'block'},
+    {'label': 'style_marker', 'value': 'marker'},
+    {'label': 'style_future', 'value': 'future'},
+  ];
+
+  static const List<Map<String, String>> videoTextPositions = [
+    {'label': 'pos_bottom', 'value': 'bottom'},
+    {'label': 'pos_center', 'value': 'center'},
+    {'label': 'pos_top', 'value': 'top'},
+  ];
 }

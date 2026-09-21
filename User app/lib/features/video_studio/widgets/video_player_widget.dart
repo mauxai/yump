@@ -14,9 +14,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoPlayerWidget extends StatefulWidget {
-  final VideoRecord video;
+  final VideoRecord? video;
+  final String? url;
+  final String? title;
 
-  const VideoPlayerWidget({super.key, required this.video});
+  const VideoPlayerWidget({
+    super.key,
+    this.video,
+    this.url,
+    this.title,
+  });
 
   @override
   State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
@@ -28,6 +35,9 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   bool _isDownloading = false;
   bool _hasError = false;
 
+  String? get _effectiveUrl => widget.url ?? widget.video?.videoUrl;
+  String get _effectiveTitle => widget.title ?? widget.video?.prompt ?? 'Video';
+
   @override
   void initState() {
     super.initState();
@@ -35,13 +45,14 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   Future<void> _initPlayer() async {
-    if (widget.video.videoUrl == null || widget.video.videoUrl!.isEmpty) {
+    final rawUrl = _effectiveUrl;
+    if (rawUrl == null || rawUrl.isEmpty) {
       setState(() => _hasError = true);
       return;
     }
 
     try {
-      String url = widget.video.videoUrl!;
+      String url = rawUrl;
       if (!url.startsWith('http')) {
         url = '${AppConstants.baseUrl}${url.startsWith('/') ? '' : '/'}$url';
       }
@@ -69,17 +80,19 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
 
   Future<void> _downloadVideo() async {
-    if (widget.video.videoUrl == null) return;
+    final rawUrl = _effectiveUrl;
+    if (rawUrl == null) return;
     setState(() => _isDownloading = true);
 
     try {
-      String url = widget.video.videoUrl!;
+      String url = rawUrl;
       if (!url.startsWith('http')) {
         url = '${AppConstants.baseUrl}${url.startsWith('/') ? '' : '/'}$url';
       }
       final res = await http.get(Uri.parse(url));
       final tempDir = await getTemporaryDirectory();
-      final filePath = '${tempDir.path}/video_${widget.video.id}.mp4';
+      final id = widget.video?.id ?? DateTime.now().millisecondsSinceEpoch.toString();
+      final filePath = '${tempDir.path}/video_$id.mp4';
       final file = File(filePath);
       await file.writeAsBytes(res.bodyBytes);
 
@@ -115,7 +128,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
               children: [
                 Expanded(
                   child: Text(
-                    widget.video.prompt,
+                    _effectiveTitle,
                     style: robotoMedium.copyWith(color: Colors.white, fontSize: Dimensions.fontSizeSmall),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

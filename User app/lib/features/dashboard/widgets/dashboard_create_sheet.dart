@@ -135,6 +135,56 @@ class DashboardCreateSheet extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                Get.toNamed(RouteHelper.getVideoEditorRoute());
+              },
+              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurpleAccent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.movie_creation_outlined, color: Colors.deepPurpleAccent, size: 24),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'edit_video'.tr,
+                            style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'timeline_music_captions'.tr,
+                            style: robotoRegular.copyWith(
+                              fontSize: Dimensions.fontSizeSmall,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 14),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

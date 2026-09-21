@@ -31,6 +31,8 @@ import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/features/chat/repo/chat_repo.dart';
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/features/video_studio/repo/video_studio_repo.dart';
+import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
+import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
 import 'package:lumen/features/gallery/controllers/cloud_gallery_controller.dart';
 import 'package:lumen/features/gallery/repo/cloud_gallery_repo.dart';
 import 'package:lumen/features/analytics/controllers/analytics_controller.dart';
@@ -60,6 +62,7 @@ class DependencyInjection {
     Get.lazyPut(() => ConfigRepo(apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => ChatRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => VideoStudioRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
+    Get.lazyPut(() => VideoEditorRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => CloudGalleryRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
     Get.lazyPut(() => AnalyticsRepo(authRepo: Get.find(), apiClient: Get.find()), fenix: true);
 
@@ -81,6 +84,7 @@ class DependencyInjection {
     Get.lazyPut(() => ConfigController(configRepo: Get.find()), fenix: true);
     Get.lazyPut(() => ChatController(chatRepo: Get.find()), fenix: true);
     Get.lazyPut(() => VideoStudioController(repo: Get.find()), fenix: true);
+    Get.lazyPut(() => VideoEditorController(videoEditorRepo: Get.find()), fenix: true);
     Get.lazyPut(() => CloudGalleryController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => AnalyticsController(repo: Get.find()), fenix: true);
     Get.lazyPut(() => VoiceInputController(), fenix: true);

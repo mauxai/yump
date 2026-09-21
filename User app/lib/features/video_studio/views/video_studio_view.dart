@@ -8,6 +8,7 @@ import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/features/video_studio/models/video_models.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
+import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
 
@@ -365,9 +366,22 @@ class _VideoItemCard extends StatelessWidget {
               onSelected: (action) {
                 if (action == 'delete') {
                   ctrl.deleteVideo(video.id);
+                } else if (action == 'edit') {
+                  Get.toNamed(RouteHelper.getVideoEditorRoute(initialVideoUrl: video.videoUrl));
                 }
               },
               itemBuilder: (_) => [
+                if (video.isCompleted && video.videoUrl != null)
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.movie_creation_outlined, color: AppColors.gradientStart, size: 16),
+                        const SizedBox(width: 8),
+                        Text('edit_in_video_editor'.tr, style: robotoRegular),
+                      ],
+                    ),
+                  ),
                 PopupMenuItem(
                   value: 'delete',
                   child: Row(
