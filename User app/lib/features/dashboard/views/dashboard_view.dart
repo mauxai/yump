@@ -60,6 +60,7 @@ class DashboardView extends GetView<DashboardController> {
           },
           child: Scaffold(
             resizeToAvoidBottomInset: false,
+            extendBody: true,
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: IndexedStack(
               index: controller.currentIndex,

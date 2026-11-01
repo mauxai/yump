@@ -19,6 +19,11 @@ class Dimensions {
   static const double radiusDefault = 10.0;
   static const double radiusLarge = 15.0;
   static const double radiusExtraLarge = 20.0;
+  static const double radiusCard = 18.0;
+  static const double radiusPill = 999.0;
+
+  static const double bottomDockHeight = 64.0;
+  static const double bottomDockMargin = 16.0;
 
   static const int messageInputLength = 250;
   static const double webMaxWidth = 1170;

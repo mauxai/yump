@@ -71,19 +71,19 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceDark,
-        contentPadding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: baseTextTheme.bodyLarge?.copyWith(color: AppColors.textSecondaryDark),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.borderDark, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.borderDark, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.gradientEnd, width: 1.5),
         ),
       ),
       iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
@@ -96,7 +96,11 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardDark,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusLarge)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusCard),
+          side: const BorderSide(color: AppColors.borderDark, width: 1),
+        ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceDark,

@@ -8,13 +8,17 @@ class AppColors {
   static const Color gradientMid = Color(0xFFE066C0);
   static const Color gradientEnd = Color(0xFF9B5CF6);
 
-  // Dark theme
-  static const Color bgDark = Color(0xFF0A0A0A);
-  static const Color surfaceDark = Color(0xFF1A1A1A);
-  static const Color cardDark = Color(0xFF1E1E1E);
-  static const Color borderDark = Color(0xFF2C2C2C);
+  // Dark theme - Modern OLED Glass Palette
+  static const Color bgDark = Color(0xFF090A0F);
+  static const Color surfaceDark = Color(0xFF13141C);
+  static const Color cardDark = Color(0xFF181A26);
+  static const Color borderDark = Color(0xFF26283B);
   static const Color textPrimaryDark = Color(0xFFFFFFFF);
-  static const Color textSecondaryDark = Color(0xFF8E8E93);
+  static const Color textSecondaryDark = Color(0xFF9496A1);
+  static const Color glassOverlayDark = Color(0xB313141C);
+  static const Color glassBorder = Color(0x22FFFFFF);
+  static const Color glowPurple = Color(0x339B5CF6);
+  static const Color glowPink = Color(0x33FF6B7A);
 
   // Light theme
   static const Color bgLight = Color(0xFFF5F5F5);

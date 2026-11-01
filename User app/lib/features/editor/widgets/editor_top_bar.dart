@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/editor/controllers/editor_controller.dart';
@@ -19,7 +20,14 @@ class EditorTopBar extends StatelessWidget {
         children: [
           TopBarIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
-            onTap: onBack ?? Get.back,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              if (onBack != null) {
+                onBack!();
+              } else {
+                Get.back();
+              }
+            },
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -55,12 +63,22 @@ class EditorTopBar extends StatelessWidget {
           const SizedBox(width: 8),
           GetBuilder<EditorController>(builder: (ctrl) => TopBarIconButton(
                 icon: Icons.undo_rounded,
-                onTap: ctrl.canUndo ? ctrl.undo : null,
+                onTap: ctrl.canUndo
+                    ? () {
+                        HapticFeedback.lightImpact();
+                        ctrl.undo();
+                      }
+                    : null,
               )),
           const SizedBox(width: 6),
           GetBuilder<EditorController>(builder: (ctrl) => TopBarIconButton(
                 icon: Icons.redo_rounded,
-                onTap: ctrl.canRedo ? ctrl.redo : null,
+                onTap: ctrl.canRedo
+                    ? () {
+                        HapticFeedback.lightImpact();
+                        ctrl.redo();
+                      }
+                    : null,
               )),
           const SizedBox(width: 6),
           GetBuilder<EditorController>(builder: (ctrl) => PopupMenuButton<String>(
@@ -68,6 +86,7 @@ class EditorTopBar extends StatelessWidget {
                 tooltip: 'quick_ai_actions'.tr,
                 onSelected: (action) {
                   if (ctrl.isGenerating) return;
+                  HapticFeedback.lightImpact();
                   if (action == 'enhance') {
                     ctrl.enhanceImage();
                   } else if (action == 'remove_bg') {
@@ -98,7 +117,10 @@ class EditorTopBar extends StatelessWidget {
                 ],
               )),
           const SizedBox(width: 10),
-          _SaveButton(onTap: ctrl.saveImage),
+          _SaveButton(onTap: () {
+            HapticFeedback.mediumImpact();
+            ctrl.saveImage();
+          }),
         ],
       ),
     );
@@ -123,6 +145,13 @@ class _SaveButton extends StatelessWidget {
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.gradientEnd.withValues(alpha: 0.35),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

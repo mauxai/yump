@@ -13,7 +13,14 @@ class EditorToolsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.85),
+        border: Border(
+          top: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5), width: 0.5),
+          bottom: BorderSide(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.5), width: 0.5),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       child: GetBuilder<EditorController>(builder: (ctrl) {
         final selected = ctrl.selectedTool;
         final isLocked = ctrl.isGenerating;

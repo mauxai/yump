@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lumen/common/widgets/profile_bottom_sheet.dart';
 import 'package:lumen/common/widgets/user_avatar.dart';
@@ -23,14 +24,19 @@ class HomeTopRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
-      onTap: () => ProfileBottomSheet.show(context),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        ProfileBottomSheet.show(context);
+      },
       child: Row(children: [
         UserAvatar(
           name: userName,
           photoUrl: userPhoto,
           size: 44,
-          borderRadius: Dimensions.radiusLarge - 3,
+          borderRadius: 14,
         ),
         const SizedBox(width: Dimensions.fontSizeSmall),
         Expanded(
@@ -44,39 +50,45 @@ class HomeTopRow extends StatelessWidget {
                       text: '${'hi'.tr} ',
                       style: robotoRegular.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontSize: Dimensions.fontSizeDefault,
+                        fontSize: Dimensions.fontSizeSmall,
                       ),
                     ),
                     TextSpan(
                       text: userName,
                       style: robotoMedium.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
-                        fontSize: Dimensions.fontSizeDefault,
+                        fontSize: Dimensions.fontSizeSmall + 1,
                       ),
                     ),
                   ],
                 ),
               ),
+              const SizedBox(height: 2),
               Row(mainAxisSize: MainAxisSize.min, children: [
                 Text(
                   AppConstants.appName,
                   style: robotoBold.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
-                    fontSize: Dimensions.fontSizeLarge,
+                    fontSize: 17,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                   decoration: BoxDecoration(
-                    color: AppColors.freeBadge,
-                    borderRadius: BorderRadius.circular(Dimensions.radiusSmall - 1),
+                    color: isDark ? const Color(0xFF28233C) : const Color(0xFFF3E8FF),
+                    borderRadius: BorderRadius.circular(Dimensions.radiusPill),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF483D6D) : const Color(0xFFDDD6FE),
+                      width: 0.8,
+                    ),
                   ),
                   child: Text(
                     planName ?? 'no_plan'.tr,
                     style: robotoMedium.copyWith(
-                      color: Colors.white,
-                      fontSize: Dimensions.fontSizeExtraSmall,
+                      color: isDark ? const Color(0xFFD8B4FE) : const Color(0xFF7E22CE),
+                      fontSize: 10,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ),
@@ -85,43 +97,65 @@ class HomeTopRow extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: () => Get.toNamed(RouteHelper.getNotificationRoute()),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            Get.toNamed(RouteHelper.getNotificationRoute());
+          },
           child: GetBuilder<NotificationController>(builder: (notificationController) {
             final unread = notificationController.unreadCount;
             return Stack(clipBehavior: Clip.none, children: [
               Container(
-                width: 44, height: 44,
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 3),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
+                  color: isDark ? const Color(0xFF141620) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF26283B) : const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Icon(
                   Icons.notifications_outlined,
                   color: Theme.of(context).colorScheme.onSurface,
-                  size: 22,
+                  size: 21,
                 ),
               ),
               if (unread > 0)
                 Positioned(
-                  top: -4, right: -4,
+                  top: -3,
+                  right: -3,
                   child: Container(
                     constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                     padding: const EdgeInsets.symmetric(horizontal: 5),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: AppColors.redDot,
+                      gradient: AppColors.mainGradient,
                       borderRadius: BorderRadius.circular(9),
                       border: Border.all(
                         color: Theme.of(context).scaffoldBackgroundColor,
                         width: 1.5,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.gradientStart.withValues(alpha: 0.5),
+                          blurRadius: 4,
+                          spreadRadius: 0.5,
+                        ),
+                      ],
                     ),
                     child: Text(
                       unread > 99 ? '99+' : '$unread',
                       style: robotoBold.copyWith(
                         color: Colors.white,
-                        fontSize: 10,
+                        fontSize: 9.5,
                         height: 1.1,
                       ),
                     ),
