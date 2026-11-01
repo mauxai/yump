@@ -6,9 +6,12 @@ import 'package:lumen/common/widgets/custom_gradient_button.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
 import 'package:lumen/features/video_studio/widgets/add_clip_bottom_sheet.dart';
+import 'package:lumen/features/video_studio/widgets/video_export_bottom_sheet.dart';
+import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_text_overlay_dialog.dart';
 import 'package:lumen/features/video_studio/widgets/video_timeline_strip_widget.dart';
+import 'package:lumen/features/video_studio/widgets/video_watermark_dialog.dart';
 import 'package:lumen/util/app_constants.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
@@ -31,7 +34,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
     super.initState();
     _ctrl = Get.find<VideoEditorController>();
     _ctrl.init(initialVideoUrl: widget.initialVideoUrl);
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -158,31 +161,34 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                         ),
                       ),
                       // Aspect Ratio Toggle
-                      Row(
-                        children: AppConstants.videoAspectRatios.map((ratio) {
-                          final isSelected = ctrl.selectedAspectRatio == ratio;
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: ChoiceChip(
-                              label: Text(ratio, style: robotoMedium.copyWith(fontSize: 10)),
-                              selected: isSelected,
-                              selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              visualDensity: VisualDensity.compact,
-                              onSelected: (_) => ctrl.setAspectRatio(ratio),
-                            ),
-                          );
-                        }).toList(),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: AppConstants.videoAspectRatios.map((ratio) {
+                            final isSelected = ctrl.selectedAspectRatio == ratio;
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: ChoiceChip(
+                                label: Text(ratio, style: robotoMedium.copyWith(fontSize: 10)),
+                                selected: isSelected,
+                                selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                visualDensity: VisualDensity.compact,
+                                onSelected: (_) => ctrl.setAspectRatio(ratio),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ],
                   ),
                 ),
 
-                // Preview & Playhead Card
-                _buildPreviewSection(ctrl),
+                // Live Inline Video Preview Section
+                const VideoEditorInlinePreviewWidget(),
                 const SizedBox(height: 8),
 
-                // Tab Bar
+                // Tab Bar (5 Tabs)
                 TabBar(
                   controller: _tabController,
                   isScrollable: true,
@@ -193,6 +199,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                     Tab(text: 'timeline'.tr),
                     Tab(text: 'soundtrack'.tr),
                     Tab(text: 'text_overlays'.tr),
+                    Tab(text: 'watermark_branding'.tr),
                     Tab(text: 'video_edits_history'.tr),
                   ],
                 ),
@@ -205,6 +212,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                       _buildTimelineTab(ctrl),
                       _buildSoundtrackTab(ctrl),
                       _buildTextOverlaysTab(ctrl),
+                      _buildWatermarkTab(ctrl),
                       _buildHistoryTab(ctrl),
                     ],
                   ),
@@ -215,87 +223,6 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
               ],
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPreviewSection(VideoEditorController ctrl) {
-    final clips = ctrl.clips;
-    final selectedIndex = ctrl.selectedClipIndex;
-    final hasClip = clips.isNotEmpty && selectedIndex < clips.length;
-
-    double ratio = 16 / 9;
-    if (ctrl.selectedAspectRatio == '9:16') ratio = 9 / 16;
-    if (ctrl.selectedAspectRatio == '1:1') ratio = 1 / 1;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      height: 180,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: ratio,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (hasClip)
-                Container(
-                  color: Colors.black87,
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.movie_creation_outlined, size: 36, color: Colors.white70),
-                        const SizedBox(height: 6),
-                        Text(
-                          '#${selectedIndex + 1} (${clips[selectedIndex].length}s)',
-                          style: robotoMedium.copyWith(color: Colors.white70, fontSize: Dimensions.fontSizeSmall),
-                        ),
-                        if (clips[selectedIndex].transitionIn != null)
-                          Text(
-                            'Transition: ${clips[selectedIndex].transitionIn}',
-                            style: robotoRegular.copyWith(color: Colors.white38, fontSize: 10),
-                          ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                Center(
-                  child: Text(
-                    'no_clips_added'.tr,
-                    style: robotoRegular.copyWith(color: Colors.white54),
-                  ),
-                ),
-
-              // Play preview button
-              if (hasClip)
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: FloatingActionButton.small(
-                    heroTag: 'play_preview_fab',
-                    backgroundColor: AppColors.gradientStart,
-                    foregroundColor: Colors.white,
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => VideoPlayerWidget(
-                          url: clips[selectedIndex].videoUrl,
-                          title: '${ctrl.title} (Clip #${selectedIndex + 1})',
-                        ),
-                      );
-                    },
-                    child: const Icon(Icons.play_arrow_rounded),
-                  ),
-                ),
-            ],
-          ),
         ),
       ),
     );
@@ -350,7 +277,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
           if (ctrl.soundtrackUrl.isEmpty) ...[
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
               ),
               onPressed: _pickAudioFile,
@@ -386,9 +313,16 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'soundtrack_volume'.trParams({'volume': '${(ctrl.soundtrackVolume * 100).round()}'}),
-                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+
+                  // Soundtrack Volume Slider
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'soundtrack_volume'.trParams({'volume': '${(ctrl.soundtrackVolume * 100).round()}'}),
+                        style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+                      ),
+                    ],
                   ),
                   Slider(
                     value: ctrl.soundtrackVolume,
@@ -396,7 +330,56 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                     max: 1.0,
                     divisions: 10,
                     activeColor: AppColors.gradientStart,
-                    onChanged: (val) => ctrl.setSoundtrack(ctrl.soundtrackUrl, volume: val),
+                    onChanged: (val) => ctrl.setSoundtrack(
+                      ctrl.soundtrackUrl,
+                      volume: val,
+                      startOffset: ctrl.soundtrackStartOffset,
+                      fade: ctrl.soundtrackFade,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Soundtrack Start Offset Slider
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('soundtrack_start_offset'.trParams({'seconds': '${ctrl.soundtrackStartOffset}'}), style: robotoMedium),
+                    ],
+                  ),
+                  Slider(
+                    value: ctrl.soundtrackStartOffset.toDouble(),
+                    min: 0,
+                    max: 30,
+                    divisions: 30,
+                    activeColor: AppColors.gradientEnd,
+                    onChanged: (val) => ctrl.setSoundtrack(
+                      ctrl.soundtrackUrl,
+                      volume: ctrl.soundtrackVolume,
+                      startOffset: val.round(),
+                      fade: ctrl.soundtrackFade,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Audio Fade In / Out
+                  Text('audio_fade'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    children: AppConstants.videoAudioFadeEffects.map((fade) {
+                      final isSel = ctrl.soundtrackFade == fade['value'];
+                      return ChoiceChip(
+                        label: Text(fade['label']!.tr, style: robotoRegular.copyWith(fontSize: 11)),
+                        selected: isSel,
+                        selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
+                        onSelected: (_) => ctrl.setSoundtrack(
+                          ctrl.soundtrackUrl,
+                          volume: ctrl.soundtrackVolume,
+                          startOffset: ctrl.soundtrackStartOffset,
+                          fade: fade['value']!,
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ],
               ),
@@ -449,7 +432,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                   leading: const Icon(Icons.subtitles_rounded, color: AppColors.gradientStart),
                   title: Text(overlay.text, style: robotoMedium),
                   subtitle: Text(
-                    '${overlay.position} • ${overlay.style} • ${overlay.length}s',
+                    '${overlay.position} • ${overlay.size} • ${overlay.length}s',
                     style: robotoRegular.copyWith(fontSize: 12),
                   ),
                   trailing: IconButton(
@@ -459,6 +442,101 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                   onTap: () => VideoTextOverlayDialog.show(context, overlayIndex: i, overlay: overlay),
                 );
               },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWatermarkTab(VideoEditorController ctrl) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('watermark_branding'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
+              if (ctrl.watermark != null)
+                TextButton(
+                  onPressed: () => VideoWatermarkDialog.show(context),
+                  child: Text('edit'.tr, style: robotoMedium.copyWith(color: AppColors.gradientStart)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (ctrl.watermark == null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
+              ),
+              child: Column(
+                children: [
+                  Icon(Icons.branding_watermark_outlined, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  const SizedBox(height: 8),
+                  Text(
+                    'watermark_logo'.tr,
+                    style: robotoMedium.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gradientStart,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    ),
+                    onPressed: () => VideoWatermarkDialog.show(context),
+                    icon: const Icon(Icons.upload_file_rounded, size: 18),
+                    label: Text('upload_logo'.tr),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Image.network(ctrl.watermark!.url, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const Icon(Icons.image)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('watermark_logo'.tr, style: robotoMedium),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${ctrl.watermark!.position} • ${((ctrl.watermark!.opacity) * 100).round()}% opacity',
+                          style: robotoRegular.copyWith(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                    onPressed: ctrl.removeWatermark,
+                  ),
+                ],
+              ),
             ),
         ],
       ),
@@ -573,9 +651,9 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
       child: SafeArea(
         top: false,
         child: CustomGradientButton(
-          text: ctrl.isRendering ? 'rendering_video'.tr : 'render_cost_info'.tr,
+          text: ctrl.isRendering ? 'rendering_video'.tr : 'export_and_render'.tr,
           isLoading: ctrl.isRendering,
-          onTap: ctrl.isRendering ? () {} : () => ctrl.submitRender(),
+          onTap: ctrl.isRendering ? () {} : () => VideoExportBottomSheet.show(context),
         ),
       ),
     );

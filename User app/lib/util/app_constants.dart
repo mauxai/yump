@@ -116,7 +116,16 @@ class AppConstants {
     {'label': '3:4', 'value': '3:4'},
   ];
 
-  static const List<String> videoAspectRatios = ['16:9', '9:16', '1:1'];
+  static const List<String> videoAspectRatios = ['16:9', '9:16', '1:1', '4:5', '4:3'];
+
+  static const List<Map<String, String>> videoResolutions = [
+    {'label': '1080p Full HD', 'value': '1080'},
+    {'label': '720p HD', 'value': 'hd'},
+    {'label': '576p SD', 'value': 'sd'},
+    {'label': '360p Mobile', 'value': 'mobile'},
+  ];
+
+  static const List<String> videoFormats = ['mp4', 'gif'];
 
   static const List<Map<String, String>> videoTransitions = [
     {'label': 'none', 'value': ''},
@@ -127,6 +136,40 @@ class AppConstants {
     {'label': 'slide_right', 'value': 'slideRight'},
     {'label': 'slide_up', 'value': 'slideUp'},
     {'label': 'slide_down', 'value': 'slideDown'},
+    {'label': 'carousel_left', 'value': 'carouselLeft'},
+    {'label': 'carousel_right', 'value': 'carouselRight'},
+  ];
+
+  static const List<Map<String, String>> videoMotionEffects = [
+    {'label': 'none', 'value': ''},
+    {'label': 'motion_zoom_in', 'value': 'zoomIn'},
+    {'label': 'motion_zoom_out', 'value': 'zoomOut'},
+    {'label': 'motion_slide_left', 'value': 'slideLeftSlow'},
+    {'label': 'motion_slide_right', 'value': 'slideRightSlow'},
+    {'label': 'motion_slide_up', 'value': 'slideUpSlow'},
+    {'label': 'motion_slide_down', 'value': 'slideDownSlow'},
+  ];
+
+  static const List<Map<String, String>> videoFitModes = [
+    {'label': 'fit_cover', 'value': 'cover'},
+    {'label': 'fit_contain', 'value': 'contain'},
+    {'label': 'fit_crop', 'value': 'crop'},
+  ];
+
+  static const List<double> videoSpeedMultipliers = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
+
+  static const List<Map<String, String>> videoAudioFadeEffects = [
+    {'label': 'fade_none', 'value': 'none'},
+    {'label': 'fade_in', 'value': 'fadeIn'},
+    {'label': 'fade_out', 'value': 'fadeOut'},
+    {'label': 'fade_in_out', 'value': 'fadeInFadeOut'},
+  ];
+
+  static const List<Map<String, String>> videoWatermarkPositions = [
+    {'label': 'pos_top_right', 'value': 'topRight'},
+    {'label': 'pos_top_left', 'value': 'topLeft'},
+    {'label': 'pos_bottom_right', 'value': 'bottomRight'},
+    {'label': 'pos_bottom_left', 'value': 'bottomLeft'},
   ];
 
   static const List<Map<String, String>> videoFilters = [
@@ -148,8 +191,27 @@ class AppConstants {
   ];
 
   static const List<Map<String, String>> videoTextPositions = [
-    {'label': 'pos_bottom', 'value': 'bottom'},
-    {'label': 'pos_center', 'value': 'center'},
+    {'label': 'pos_top_left', 'value': 'topLeft'},
     {'label': 'pos_top', 'value': 'top'},
+    {'label': 'pos_top_right', 'value': 'topRight'},
+    {'label': 'pos_left', 'value': 'left'},
+    {'label': 'pos_center', 'value': 'center'},
+    {'label': 'pos_right', 'value': 'right'},
+    {'label': 'pos_bottom_left', 'value': 'bottomLeft'},
+    {'label': 'pos_bottom', 'value': 'bottom'},
+    {'label': 'pos_bottom_right', 'value': 'bottomRight'},
+  ];
+
+  static const List<Map<String, String>> videoTextSizes = [
+    {'label': 'size_small', 'value': 'small'},
+    {'label': 'size_medium', 'value': 'medium'},
+    {'label': 'size_large', 'value': 'large'},
+  ];
+
+  static const List<Map<String, String>> videoTextBackgrounds = [
+    {'label': 'bg_none', 'value': ''},
+    {'label': 'bg_black', 'value': '#000000cc'},
+    {'label': 'bg_white', 'value': '#ffffffcc'},
+    {'label': 'bg_brand', 'value': '#6366f1dd'},
   ];
 }

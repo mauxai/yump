@@ -11,6 +11,8 @@ class TimelineClipModel {
   String? effect;
   String? fit;
   double? volume;
+  double speed;
+  bool isImage;
 
   TimelineClipModel({
     required this.id,
@@ -23,6 +25,8 @@ class TimelineClipModel {
     this.effect,
     this.fit,
     this.volume,
+    this.speed = 1.0,
+    this.isImage = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -30,12 +34,14 @@ class TimelineClipModel {
         'videoUrl': videoUrl,
         'length': length,
         'trim': trim,
-        if (transitionIn != null) 'transitionIn': transitionIn,
-        if (transitionOut != null) 'transitionOut': transitionOut,
-        if (filter != null) 'filter': filter,
-        if (effect != null) 'effect': effect,
-        if (fit != null) 'fit': fit,
+        if (transitionIn != null && transitionIn!.isNotEmpty) 'transitionIn': transitionIn,
+        if (transitionOut != null && transitionOut!.isNotEmpty) 'transitionOut': transitionOut,
+        if (filter != null && filter!.isNotEmpty) 'filter': filter,
+        if (effect != null && effect!.isNotEmpty) 'effect': effect,
+        if (fit != null && fit!.isNotEmpty) 'fit': fit,
         if (volume != null) 'volume': volume,
+        if (speed != 1.0) 'speed': speed,
+        if (isImage) 'isImage': true,
       };
 
   factory TimelineClipModel.fromJson(Map<String, dynamic> json) => TimelineClipModel(
@@ -49,7 +55,39 @@ class TimelineClipModel {
         effect: json['effect'],
         fit: json['fit'],
         volume: json['volume']?.toDouble(),
+        speed: (json['speed'] as num?)?.toDouble() ?? 1.0,
+        isImage: json['isImage'] ?? false,
       );
+
+  TimelineClipModel copyWith({
+    String? id,
+    String? videoUrl,
+    int? length,
+    int? trim,
+    String? transitionIn,
+    String? transitionOut,
+    String? filter,
+    String? effect,
+    String? fit,
+    double? volume,
+    double? speed,
+    bool? isImage,
+  }) {
+    return TimelineClipModel(
+      id: id ?? this.id,
+      videoUrl: videoUrl ?? this.videoUrl,
+      length: length ?? this.length,
+      trim: trim ?? this.trim,
+      transitionIn: transitionIn ?? this.transitionIn,
+      transitionOut: transitionOut ?? this.transitionOut,
+      filter: filter ?? this.filter,
+      effect: effect ?? this.effect,
+      fit: fit ?? this.fit,
+      volume: volume ?? this.volume,
+      speed: speed ?? this.speed,
+      isImage: isImage ?? this.isImage,
+    );
+  }
 }
 
 class TextOverlayModel {
@@ -57,7 +95,9 @@ class TextOverlayModel {
   String text;
   String position;
   String style;
+  String size;
   String color;
+  String? background;
   int start;
   int length;
 
@@ -66,7 +106,9 @@ class TextOverlayModel {
     required this.text,
     this.position = 'bottom',
     this.style = 'minimal',
+    this.size = 'medium',
     this.color = '#ffffff',
+    this.background,
     this.start = 0,
     this.length = 3,
   });
@@ -76,7 +118,9 @@ class TextOverlayModel {
         'text': text,
         'position': position,
         'style': style,
+        'size': size,
         'color': color,
+        if (background != null && background!.isNotEmpty) 'background': background,
         'start': start,
         'length': length,
       };
@@ -86,9 +130,39 @@ class TextOverlayModel {
         text: json['text'] ?? '',
         position: json['position'] ?? 'bottom',
         style: json['style'] ?? 'minimal',
+        size: json['size'] ?? 'medium',
         color: json['color'] ?? '#ffffff',
+        background: json['background'],
         start: json['start'] ?? 0,
         length: json['length'] ?? 3,
+      );
+}
+
+class WatermarkModel {
+  String url;
+  String position;
+  double opacity;
+  double scale;
+
+  WatermarkModel({
+    required this.url,
+    this.position = 'topRight',
+    this.opacity = 0.85,
+    this.scale = 0.15,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'url': url,
+        'position': position,
+        'opacity': opacity,
+        'scale': scale,
+      };
+
+  factory WatermarkModel.fromJson(Map<String, dynamic> json) => WatermarkModel(
+        url: json['url'] ?? '',
+        position: json['position'] ?? 'topRight',
+        opacity: (json['opacity'] as num?)?.toDouble() ?? 0.85,
+        scale: (json['scale'] as num?)?.toDouble() ?? 0.15,
       );
 }
 

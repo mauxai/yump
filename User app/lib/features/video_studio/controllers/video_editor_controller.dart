@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/features/video_studio/models/video_editor_models.dart';
 import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
+import 'package:video_player/video_player.dart';
 
 class VideoEditorController extends GetxController implements GetxService {
   final VideoEditorRepo videoEditorRepo;
@@ -18,8 +20,17 @@ class VideoEditorController extends GetxController implements GetxService {
   final List<TextOverlayModel> _textOverlays = [];
   List<TextOverlayModel> get textOverlays => _textOverlays;
 
+  WatermarkModel? _watermark;
+  WatermarkModel? get watermark => _watermark;
+
   String _selectedAspectRatio = '16:9';
   String get selectedAspectRatio => _selectedAspectRatio;
+
+  String _selectedResolution = 'hd';
+  String get selectedResolution => _selectedResolution;
+
+  String _selectedFormat = 'mp4';
+  String get selectedFormat => _selectedFormat;
 
   String _title = 'My Video Edit';
   String get title => _title;
@@ -29,6 +40,12 @@ class VideoEditorController extends GetxController implements GetxService {
 
   double _soundtrackVolume = 0.5;
   double get soundtrackVolume => _soundtrackVolume;
+
+  int _soundtrackStartOffset = 0;
+  int get soundtrackStartOffset => _soundtrackStartOffset;
+
+  String _soundtrackFade = 'none';
+  String get soundtrackFade => _soundtrackFade;
 
   bool _isRendering = false;
   bool get isRendering => _isRendering;
@@ -47,6 +64,28 @@ class VideoEditorController extends GetxController implements GetxService {
 
   Timer? _statusPollingTimer;
 
+  // --- Inline Video Player Engine ---
+  VideoPlayerController? _playerController;
+  VideoPlayerController? get playerController => _playerController;
+
+  bool _isPlaying = false;
+  bool get isPlaying => _isPlaying;
+
+  bool _isPlayerInitialized = false;
+  bool get isPlayerInitialized => _isPlayerInitialized;
+
+  bool _isPlayAllSequence = false;
+  bool get isPlayAllSequence => _isPlayAllSequence;
+
+  bool _isPlayerMuted = false;
+  bool get isPlayerMuted => _isPlayerMuted;
+
+  Duration _currentPosition = Duration.zero;
+  Duration get currentPosition => _currentPosition;
+
+  Duration _clipDuration = Duration.zero;
+  Duration get clipDuration => _clipDuration;
+
   @override
   void onInit() {
     super.onInit();
@@ -56,7 +95,96 @@ class VideoEditorController extends GetxController implements GetxService {
   @override
   void onClose() {
     _statusPollingTimer?.cancel();
+    _disposePlayer();
     super.onClose();
+  }
+
+  void _disposePlayer() {
+    _playerController?.removeListener(_onPlayerTick);
+    _playerController?.dispose();
+    _playerController = null;
+    _isPlayerInitialized = false;
+    _isPlaying = false;
+  }
+
+  Future<void> initPlayerForClip(int clipIndex) async {
+    if (clipIndex < 0 || clipIndex >= _clips.length) return;
+    final clip = _clips[clipIndex];
+    if (clip.isImage || clip.videoUrl.isEmpty) {
+      _disposePlayer();
+      update();
+      return;
+    }
+
+    _disposePlayer();
+    update();
+
+    try {
+      final uri = Uri.parse(clip.videoUrl);
+      _playerController = VideoPlayerController.networkUrl(uri);
+      await _playerController!.initialize();
+      _isPlayerInitialized = true;
+      _clipDuration = _playerController!.value.duration;
+      _playerController!.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
+      _playerController!.setPlaybackSpeed(clip.speed);
+      if (clip.trim > 0) {
+        await _playerController!.seekTo(Duration(seconds: clip.trim));
+      }
+      _playerController!.addListener(_onPlayerTick);
+      update();
+    } catch (e) {
+      debugPrint('Error initializing inline player: $e');
+      _isPlayerInitialized = false;
+      update();
+    }
+  }
+
+  void _onPlayerTick() {
+    if (_playerController == null || !_isPlayerInitialized) return;
+    _currentPosition = _playerController!.value.position;
+    final playing = _playerController!.value.isPlaying;
+    if (_isPlaying != playing) {
+      _isPlaying = playing;
+    }
+
+    // Sequence chaining: if active clip finishes and Play All is enabled, advance to next clip
+    if (_isPlayAllSequence && _playerController!.value.position >= _playerController!.value.duration && _clips.isNotEmpty) {
+      final nextIndex = (_selectedClipIndex + 1) % _clips.length;
+      selectClip(nextIndex);
+      _playerController?.play();
+    }
+    update();
+  }
+
+  void togglePlayPause() {
+    if (_playerController == null || !_isPlayerInitialized) return;
+    if (_playerController!.value.isPlaying) {
+      _playerController!.pause();
+    } else {
+      _playerController!.play();
+    }
+    _isPlaying = _playerController!.value.isPlaying;
+    update();
+  }
+
+  void seekTo(Duration position) {
+    if (_playerController == null || !_isPlayerInitialized) return;
+    _playerController!.seekTo(position);
+    update();
+  }
+
+  void toggleMute() {
+    _isPlayerMuted = !_isPlayerMuted;
+    if (_playerController != null && _isPlayerInitialized) {
+      final currentClip = _clips.isNotEmpty && _selectedClipIndex < _clips.length ? _clips[_selectedClipIndex] : null;
+      _playerController!.setVolume(_isPlayerMuted ? 0.0 : (currentClip?.volume ?? 1.0));
+    }
+    update();
+  }
+
+  void togglePlayAllSequence() {
+    _isPlayAllSequence = !_isPlayAllSequence;
+    update();
   }
 
   void init({String? initialVideoUrl}) {
@@ -80,33 +208,66 @@ class VideoEditorController extends GetxController implements GetxService {
     update();
   }
 
+  void setResolution(String res) {
+    _selectedResolution = res;
+    update();
+  }
+
+  void setFormat(String fmt) {
+    _selectedFormat = fmt;
+    update();
+  }
+
   void selectClip(int index) {
     if (index >= 0 && index < _clips.length) {
       _selectedClipIndex = index;
+      initPlayerForClip(index);
       update();
     }
   }
 
-  void setSoundtrack(String url, {double? volume}) {
+  void setSoundtrack(String url, {double? volume, int? startOffset, String? fade}) {
     _soundtrackUrl = url;
     if (volume != null) _soundtrackVolume = volume;
+    if (startOffset != null) _soundtrackStartOffset = startOffset;
+    if (fade != null) _soundtrackFade = fade;
     update();
   }
 
   void removeSoundtrack() {
     _soundtrackUrl = '';
+    _soundtrackStartOffset = 0;
+    _soundtrackFade = 'none';
     update();
   }
 
-  void addClip(String url, {int length = 5}) {
+  void setWatermark({
+    required String url,
+    String position = 'topRight',
+    double opacity = 0.85,
+    double scale = 0.15,
+  }) {
+    _watermark = WatermarkModel(url: url, position: position, opacity: opacity, scale: scale);
+    update();
+  }
+
+  void removeWatermark() {
+    _watermark = null;
+    update();
+  }
+
+  void addClip(String url, {int length = 5, bool isImage = false}) {
     final clip = TimelineClipModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       videoUrl: url,
       length: length,
+      isImage: isImage,
+      effect: isImage ? 'zoomIn' : null,
       transitionIn: _clips.isNotEmpty ? 'fade' : null,
     );
     _clips.add(clip);
     _selectedClipIndex = _clips.length - 1;
+    initPlayerForClip(_selectedClipIndex);
     update();
   }
 
@@ -115,6 +276,11 @@ class VideoEditorController extends GetxController implements GetxService {
       _clips.removeAt(index);
       if (_selectedClipIndex >= _clips.length) {
         _selectedClipIndex = _clips.isEmpty ? 0 : _clips.length - 1;
+      }
+      if (_clips.isNotEmpty) {
+        initPlayerForClip(_selectedClipIndex);
+      } else {
+        _disposePlayer();
       }
       update();
     }
@@ -127,6 +293,45 @@ class VideoEditorController extends GetxController implements GetxService {
     final item = _clips.removeAt(oldIndex);
     _clips.insert(newIndex, item);
     _selectedClipIndex = newIndex;
+    update();
+  }
+
+  void splitClip(int index, double atSeconds) {
+    if (index < 0 || index >= _clips.length) return;
+    final clip = _clips[index];
+    final splitTime = atSeconds.round().clamp(1, clip.length > 1 ? clip.length - 1 : 1);
+    final remainingLength = clip.length - splitTime;
+
+    if (remainingLength <= 0) return;
+
+    // Update first part
+    clip.length = splitTime;
+
+    // Create second part with start trim offset
+    final secondPart = clip.copyWith(
+      id: '${DateTime.now().millisecondsSinceEpoch}_split',
+      trim: clip.trim + splitTime,
+      length: remainingLength,
+      transitionIn: 'fade',
+    );
+
+    _clips.insert(index + 1, secondPart);
+    _selectedClipIndex = index;
+    initPlayerForClip(_selectedClipIndex);
+    showCustomSnackBar('clip_split_success'.tr, isError: false);
+    update();
+  }
+
+  void duplicateClip(int index) {
+    if (index < 0 || index >= _clips.length) return;
+    final clip = _clips[index];
+    final cloned = clip.copyWith(
+      id: '${DateTime.now().millisecondsSinceEpoch}_dup',
+    );
+    _clips.insert(index + 1, cloned);
+    _selectedClipIndex = index + 1;
+    initPlayerForClip(_selectedClipIndex);
+    showCustomSnackBar('clip_duplicated'.tr, isError: false);
     update();
   }
 
@@ -144,9 +349,24 @@ class VideoEditorController extends GetxController implements GetxService {
     }
   }
 
-  void setClipTransition(int index, String? transition) {
+  void updateClipTrimRange(int index, int trim, int length) {
+    if (index >= 0 && index < _clips.length) {
+      _clips[index].trim = trim;
+      _clips[index].length = length;
+      update();
+    }
+  }
+
+  void setClipTransitionIn(int index, String? transition) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].transitionIn = transition?.isEmpty == true ? null : transition;
+      update();
+    }
+  }
+
+  void setClipTransitionOut(int index, String? transition) {
+    if (index >= 0 && index < _clips.length) {
+      _clips[index].transitionOut = transition?.isEmpty == true ? null : transition;
       update();
     }
   }
@@ -158,9 +378,36 @@ class VideoEditorController extends GetxController implements GetxService {
     }
   }
 
+  void setClipMotionEffect(int index, String? effect) {
+    if (index >= 0 && index < _clips.length) {
+      _clips[index].effect = effect?.isEmpty == true ? null : effect;
+      update();
+    }
+  }
+
+  void setClipFit(int index, String? fit) {
+    if (index >= 0 && index < _clips.length) {
+      _clips[index].fit = fit?.isEmpty == true ? null : fit;
+      update();
+    }
+  }
+
+  void setClipSpeed(int index, double speed) {
+    if (index >= 0 && index < _clips.length) {
+      _clips[index].speed = speed;
+      if (index == _selectedClipIndex && _playerController != null && _isPlayerInitialized) {
+        _playerController!.setPlaybackSpeed(speed);
+      }
+      update();
+    }
+  }
+
   void setClipVolume(int index, double volume) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].volume = volume;
+      if (index == _selectedClipIndex && _playerController != null && _isPlayerInitialized) {
+        _playerController!.setVolume(_isPlayerMuted ? 0.0 : volume);
+      }
       update();
     }
   }
@@ -169,7 +416,9 @@ class VideoEditorController extends GetxController implements GetxService {
     String text, {
     String position = 'bottom',
     String style = 'minimal',
+    String size = 'medium',
     String color = '#ffffff',
+    String? background,
     int start = 0,
     int length = 3,
   }) {
@@ -178,7 +427,9 @@ class VideoEditorController extends GetxController implements GetxService {
       text: text,
       position: position,
       style: style,
+      size: size,
       color: color,
+      background: background,
       start: start,
       length: length,
     );
@@ -191,7 +442,9 @@ class VideoEditorController extends GetxController implements GetxService {
     required String text,
     String? position,
     String? style,
+    String? size,
     String? color,
+    String? background,
     int? start,
     int? length,
   }) {
@@ -200,7 +453,9 @@ class VideoEditorController extends GetxController implements GetxService {
       item.text = text;
       if (position != null) item.position = position;
       if (style != null) item.style = style;
+      if (size != null) item.size = size;
       if (color != null) item.color = color;
+      item.background = background;
       if (start != null) item.start = start;
       if (length != null) item.length = length;
       update();
@@ -239,7 +494,7 @@ class VideoEditorController extends GetxController implements GetxService {
     }
   }
 
-  Future<void> submitRender() async {
+  Future<void> submitRender({String? resolution, String? format, String? aspectRatio}) async {
     if (_clips.isEmpty) {
       showCustomSnackBar('please_add_clip'.tr);
       return;
@@ -257,9 +512,16 @@ class VideoEditorController extends GetxController implements GetxService {
         clips: clipPayload,
         soundtrackUrl: _soundtrackUrl.trim().isEmpty ? null : _soundtrackUrl.trim(),
         soundtrackVolume: _soundtrackVolume,
+        soundtrackStart: _soundtrackStartOffset,
+        soundtrackFade: _soundtrackFade,
         textOverlays: textPayload,
-        aspectRatio: _selectedAspectRatio,
-        resolution: 'hd',
+        watermarkUrl: _watermark?.url,
+        watermarkPosition: _watermark?.position ?? 'topRight',
+        watermarkOpacity: _watermark?.opacity ?? 0.85,
+        watermarkScale: _watermark?.scale ?? 0.15,
+        aspectRatio: aspectRatio ?? _selectedAspectRatio,
+        resolution: resolution ?? _selectedResolution,
+        format: format ?? _selectedFormat,
       );
 
       if (response.statusCode == 200 && response.body['success'] == true) {

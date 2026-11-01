@@ -15,19 +15,34 @@ class VideoEditorRepo {
     required List<Map<String, dynamic>> clips,
     String? soundtrackUrl,
     double soundtrackVolume = 0.5,
+    int soundtrackStart = 0,
+    String? soundtrackFade,
     List<Map<String, dynamic>> textOverlays = const [],
+    String? watermarkUrl,
+    String watermarkPosition = 'topRight',
+    double watermarkOpacity = 0.85,
+    double watermarkScale = 0.15,
     String aspectRatio = '16:9',
     String resolution = 'hd',
+    String format = 'mp4',
   }) async {
     final body = {
       'title': title,
       'clips': clips,
       if (soundtrackUrl != null && soundtrackUrl.trim().isNotEmpty) 'soundtrackUrl': soundtrackUrl.trim(),
       'soundtrackVolume': soundtrackVolume,
+      'soundtrackStart': soundtrackStart,
+      if (soundtrackFade != null && soundtrackFade.isNotEmpty && soundtrackFade != 'none') 'soundtrackFade': soundtrackFade,
       'textOverlays': textOverlays,
+      if (watermarkUrl != null && watermarkUrl.trim().isNotEmpty) ...{
+        'watermarkUrl': watermarkUrl.trim(),
+        'watermarkPosition': watermarkPosition,
+        'watermarkOpacity': watermarkOpacity,
+        'watermarkScale': watermarkScale,
+      },
       'aspectRatio': aspectRatio,
       'resolution': resolution,
-      'format': 'mp4',
+      'format': format,
     };
     return await apiClient.postData(AppConstants.videoEditRenderUri, body);
   }

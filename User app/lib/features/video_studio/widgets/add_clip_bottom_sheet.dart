@@ -49,6 +49,43 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
     }
   }
 
+  Future<void> _pickMultipleFromDevice(VideoEditorController ctrl) async {
+    final picker = ImagePicker();
+    try {
+      final pickedList = await picker.pickMultipleMedia();
+      if (pickedList.isNotEmpty) {
+        if (!mounted) return;
+        Navigator.pop(context);
+        for (final item in pickedList) {
+          final isImg = item.path.toLowerCase().endsWith('.jpg') ||
+              item.path.toLowerCase().endsWith('.jpeg') ||
+              item.path.toLowerCase().endsWith('.png') ||
+              item.path.toLowerCase().endsWith('.webp');
+          final uploadedUrl = await ctrl.uploadMediaFile(item.path, isAudio: false);
+          if (uploadedUrl != null) {
+            ctrl.addClip(uploadedUrl, length: isImg ? 4 : 5, isImage: isImg);
+          }
+        }
+      }
+    } catch (_) {
+      // Fallback to single video pick if multiple media is not supported
+      _pickFromDevice(ctrl);
+    }
+  }
+
+  Future<void> _pickPhotoSlide(VideoEditorController ctrl) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      if (!mounted) return;
+      Navigator.pop(context);
+      final uploadedUrl = await ctrl.uploadMediaFile(picked.path, isAudio: false);
+      if (uploadedUrl != null) {
+        ctrl.addClip(uploadedUrl, length: 4, isImage: true);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<VideoEditorController>();
@@ -98,6 +135,26 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
           title: Text('pick_video_from_gallery'.tr, style: robotoMedium),
           trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
           onTap: () => _pickFromDevice(ctrl),
+        ),
+        const SizedBox(height: 10),
+
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+          tileColor: Theme.of(context).scaffoldBackgroundColor,
+          leading: const Icon(Icons.video_collection_rounded, color: Colors.indigoAccent),
+          title: Text('pick_multiple_videos'.tr, style: robotoMedium),
+          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+          onTap: () => _pickMultipleFromDevice(ctrl),
+        ),
+        const SizedBox(height: 10),
+
+        ListTile(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+          tileColor: Theme.of(context).scaffoldBackgroundColor,
+          leading: const Icon(Icons.add_photo_alternate_rounded, color: Colors.teal),
+          title: Text('add_photo_slide'.tr, style: robotoMedium),
+          trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+          onTap: () => _pickPhotoSlide(ctrl),
         ),
         const SizedBox(height: 10),
 
