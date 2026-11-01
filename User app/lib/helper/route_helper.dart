@@ -16,6 +16,8 @@ import 'package:lumen/features/chat/views/chat_view.dart';
 import 'package:lumen/features/video_studio/views/video_studio_view.dart';
 import 'package:lumen/features/image_studio/views/image_studio_view.dart';
 import 'package:lumen/features/video_studio/views/video_editor_view.dart';
+import 'package:lumen/features/video_studio/views/video_render_progress_view.dart';
+import 'package:lumen/features/video_studio/views/video_render_success_view.dart';
 import 'package:lumen/features/creations/views/creations_view.dart';
 import 'package:lumen/features/analytics/views/analytics_view.dart';
 
@@ -28,6 +30,8 @@ class RouteHelper {
   static const String imageStudio = '/image-studio';
   static const String videoStudio = '/video-studio';
   static const String videoEditor = '/video-editor';
+  static const String videoRenderProgress = '/video-render-progress';
+  static const String videoRenderSuccess = '/video-render-success';
   static const String creations = '/creations';
   static const String analytics = '/analytics';
   static const String upgrade = '/upgrade';
@@ -49,6 +53,12 @@ class RouteHelper {
   static String getVideoEditorRoute({String? initialVideoUrl}) => initialVideoUrl != null && initialVideoUrl.isNotEmpty
       ? '$videoEditor?initialVideoUrl=${Uri.encodeComponent(initialVideoUrl)}'
       : videoEditor;
+  static String getVideoRenderProgressRoute(String? editId) => editId != null && editId.isNotEmpty
+      ? '$videoRenderProgress?editId=${Uri.encodeComponent(editId)}'
+      : videoRenderProgress;
+  static String getVideoRenderSuccessRoute(String? editId) => editId != null && editId.isNotEmpty
+      ? '$videoRenderSuccess?editId=${Uri.encodeComponent(editId)}'
+      : videoRenderSuccess;
   static String getCreationsRoute() => creations;
   static String getAnalyticsRoute() => analytics;
   static String getUpgradeRoute() => upgrade;
@@ -89,6 +99,22 @@ class RouteHelper {
         initialVideoUrl: Get.parameters['initialVideoUrl'] == null
             ? null
             : Uri.decodeComponent(Get.parameters['initialVideoUrl']!),
+      ),
+    ),
+    GetPage(
+      name: videoRenderProgress,
+      page: () => VideoRenderProgressView(
+        editId: Get.parameters['editId'] == null
+            ? null
+            : Uri.decodeComponent(Get.parameters['editId']!),
+      ),
+    ),
+    GetPage(
+      name: videoRenderSuccess,
+      page: () => VideoRenderSuccessView(
+        editId: Get.parameters['editId'] == null
+            ? null
+            : Uri.decodeComponent(Get.parameters['editId']!),
       ),
     ),
     GetPage(name: creations, page: () => const CreationsView()),

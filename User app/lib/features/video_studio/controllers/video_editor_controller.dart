@@ -1,10 +1,18 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
+import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/features/video_studio/models/video_editor_models.dart';
 import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
+import 'package:lumen/helper/notification_helper.dart';
+import 'package:lumen/helper/route_helper.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoEditorController extends GetxController implements GetxService {
@@ -50,11 +58,22 @@ class VideoEditorController extends GetxController implements GetxService {
   bool _isRendering = false;
   bool get isRendering => _isRendering;
 
+  int _activeRenderStage = 1;
+  int get activeRenderStage => _activeRenderStage;
+
+  int _pollingTickCount = 0;
+
   bool _isUploading = false;
   bool get isUploading => _isUploading;
 
   bool _isLoadingHistory = false;
   bool get isLoadingHistory => _isLoadingHistory;
+
+  bool _isDownloading = false;
+  bool get isDownloading => _isDownloading;
+
+  bool _isSharing = false;
+  bool get isSharing => _isSharing;
 
   final List<VideoEditRecordModel> _editHistory = [];
   List<VideoEditRecordModel> get editHistory => _editHistory;
@@ -63,6 +82,51 @@ class VideoEditorController extends GetxController implements GetxService {
   VideoEditRecordModel? get activeEdit => _activeEdit;
 
   Timer? _statusPollingTimer;
+
+  // --- Timeline Multi-Track Zoom & Playhead State ---
+  double _timelineZoom = 24.0; // pixels per second
+  double get timelineZoom => _timelineZoom;
+
+  void setTimelineZoom(double zoom) {
+    _timelineZoom = zoom.clamp(12.0, 60.0);
+    update();
+  }
+
+  void zoomIn() => setTimelineZoom(_timelineZoom + 6.0);
+  void zoomOut() => setTimelineZoom(_timelineZoom - 6.0);
+
+  double get totalTimelineDuration {
+    return _clips.fold(0.0, (sum, c) => sum + c.length);
+  }
+
+  double get globalPlayheadSeconds {
+    double elapsed = 0.0;
+    for (int i = 0; i < _selectedClipIndex && i < _clips.length; i++) {
+      elapsed += _clips[i].length;
+    }
+    if (_playerController != null && _isPlayerInitialized) {
+      final clipSec = _currentPosition.inMilliseconds / 1000.0;
+      elapsed += clipSec;
+    }
+    return elapsed;
+  }
+
+  void seekGlobalTimeline(double targetSeconds) {
+    if (_clips.isEmpty) return;
+    double accumulated = 0.0;
+    for (int i = 0; i < _clips.length; i++) {
+      final clipLen = _clips[i].length.toDouble();
+      if (targetSeconds <= accumulated + clipLen || i == _clips.length - 1) {
+        final offsetInClip = (targetSeconds - accumulated).clamp(0.0, clipLen);
+        if (_selectedClipIndex != i) {
+          selectClip(i);
+        }
+        seekTo(Duration(milliseconds: (offsetInClip * 1000).round()));
+        return;
+      }
+      accumulated += clipLen;
+    }
+  }
 
   // --- Inline Video Player Engine ---
   VideoPlayerController? _playerController;
@@ -147,7 +211,6 @@ class VideoEditorController extends GetxController implements GetxService {
       _isPlaying = playing;
     }
 
-    // Sequence chaining: if active clip finishes and Play All is enabled, advance to next clip
     if (_isPlayAllSequence && _playerController!.value.position >= _playerController!.value.duration && _clips.isNotEmpty) {
       final nextIndex = (_selectedClipIndex + 1) % _clips.length;
       selectClip(nextIndex);
@@ -304,10 +367,8 @@ class VideoEditorController extends GetxController implements GetxService {
 
     if (remainingLength <= 0) return;
 
-    // Update first part
     clip.length = splitTime;
 
-    // Create second part with start trim offset
     final secondPart = clip.copyWith(
       id: '${DateTime.now().millisecondsSinceEpoch}_split',
       trim: clip.trim + splitTime,
@@ -501,6 +562,8 @@ class VideoEditorController extends GetxController implements GetxService {
     }
 
     _isRendering = true;
+    _activeRenderStage = 1;
+    _pollingTickCount = 0;
     update();
 
     final clipPayload = _clips.map((c) => c.toJson()).toList();
@@ -528,12 +591,14 @@ class VideoEditorController extends GetxController implements GetxService {
         final newEdit = VideoEditRecordModel.fromJson(response.body['edit']);
         _activeEdit = newEdit;
         _editHistory.insert(0, newEdit);
-        showCustomSnackBar('video_render_dispatched'.tr, isError: false);
         _startPolling(newEdit.id);
 
         if (Get.isRegistered<ProfileController>()) {
           Get.find<ProfileController>().fetchProfile();
         }
+
+        // Navigate immediately to dedicated Render Progress View
+        Get.toNamed(RouteHelper.getVideoRenderProgressRoute(newEdit.id));
       } else {
         showCustomSnackBar(response.body['error'] ?? 'video_render_failed'.tr);
         _isRendering = false;
@@ -548,7 +613,19 @@ class VideoEditorController extends GetxController implements GetxService {
 
   void _startPolling(String editId) {
     _statusPollingTimer?.cancel();
+    _pollingTickCount = 0;
+
     _statusPollingTimer = Timer.periodic(const Duration(seconds: 4), (timer) async {
+      _pollingTickCount++;
+      if (_pollingTickCount == 2) {
+        _activeRenderStage = 2; // Downloading & preparing assets
+      } else if (_pollingTickCount == 4) {
+        _activeRenderStage = 3; // Stitching & transitions
+      } else if (_pollingTickCount >= 6) {
+        _activeRenderStage = 4; // Final audio & encoding
+      }
+      update();
+
       final response = await videoEditorRepo.checkVideoEditStatus(editId);
       if (response.statusCode == 200 && response.body['success'] == true) {
         final updated = VideoEditRecordModel.fromJson(response.body['edit']);
@@ -562,11 +639,44 @@ class VideoEditorController extends GetxController implements GetxService {
         if (updated.isCompleted || updated.isFailed) {
           _isRendering = false;
           timer.cancel();
+
           if (updated.isCompleted) {
-            showCustomSnackBar('video_render_success'.tr, isError: false);
+            _activeRenderStage = 4;
+
+            // 1. Dispatch Local OS System Notification
+            NotificationHelper.showVideoRenderCompleteNotification(
+              editId: updated.id,
+              title: updated.title,
+            );
+
+            // 2. Navigation handling
+            final currentRoute = Get.currentRoute;
+            if (currentRoute.contains(RouteHelper.videoRenderProgress)) {
+              Get.offNamed(RouteHelper.getVideoRenderSuccessRoute(updated.id));
+            } else {
+              // In-App Completion Notification Banner
+              Get.snackbar(
+                'render_completed_notification'.tr,
+                '${updated.title}: ${'render_completed_tap_view'.tr}',
+                snackPosition: SnackPosition.TOP,
+                backgroundColor: Colors.black87,
+                colorText: Colors.white,
+                duration: const Duration(seconds: 5),
+                mainButton: TextButton(
+                  onPressed: () {
+                    Get.toNamed(RouteHelper.getVideoRenderSuccessRoute(updated.id));
+                  },
+                  child: Text(
+                    'view_rendered_video'.tr,
+                    style: const TextStyle(color: AppColors.gradientStart, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              );
+            }
           } else {
             showCustomSnackBar(updated.errorMessage ?? 'video_render_failed'.tr);
           }
+
           if (Get.isRegistered<ProfileController>()) {
             Get.find<ProfileController>().fetchProfile();
           }
@@ -574,6 +684,60 @@ class VideoEditorController extends GetxController implements GetxService {
         update();
       }
     });
+  }
+
+  Future<void> downloadRenderedVideo(String videoUrl) async {
+    _isDownloading = true;
+    update();
+    try {
+      final res = await http.get(Uri.parse(videoUrl));
+      final tempDir = await getTemporaryDirectory();
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final filePath = '${tempDir.path}/video_$id.mp4';
+      final file = File(filePath);
+      await file.writeAsBytes(res.bodyBytes);
+
+      await Gal.putVideo(filePath);
+      showCustomSnackBar('video_saved_to_gallery'.tr, isError: false);
+    } catch (e) {
+      showCustomSnackBar('failed_to_save_gallery'.tr);
+    } finally {
+      _isDownloading = false;
+      update();
+    }
+  }
+
+  Future<void> shareRenderedVideo(String videoUrl, String title) async {
+    _isSharing = true;
+    update();
+    try {
+      final res = await http.get(Uri.parse(videoUrl));
+      final tempDir = await getTemporaryDirectory();
+      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final filePath = '${tempDir.path}/video_$id.mp4';
+      final file = File(filePath);
+      await file.writeAsBytes(res.bodyBytes);
+
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        text: title.isNotEmpty ? title : 'Check out my video!',
+      );
+    } catch (e) {
+      showCustomSnackBar('Failed to share video: $e');
+    } finally {
+      _isSharing = false;
+      update();
+    }
+  }
+
+  void restoreProjectForEditing(VideoEditRecordModel record) {
+    if (_clips.isEmpty && record.videoUrl != null && record.videoUrl!.isNotEmpty) {
+      addClip(record.videoUrl!);
+    }
+    _title = record.title;
+    _selectedAspectRatio = record.aspectRatio;
+    _selectedResolution = record.resolution;
+    Get.toNamed(RouteHelper.getVideoEditorRoute());
   }
 
   Future<void> loadEditHistory() async {

@@ -31,6 +31,7 @@ dependencies:
   video_player: ^2.9.2
   chewie: ^1.8.5
   gal: ^2.3.0
+  share_plus: ^10.1.4
   speech_to_text: ^7.0.0
 
 dev_dependencies:

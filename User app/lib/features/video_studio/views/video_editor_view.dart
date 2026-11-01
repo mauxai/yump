@@ -5,9 +5,9 @@ import 'package:lumen/common/widgets/custom_appbar_widget.dart';
 import 'package:lumen/common/widgets/custom_gradient_button.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
-import 'package:lumen/features/video_studio/widgets/add_clip_bottom_sheet.dart';
 import 'package:lumen/features/video_studio/widgets/video_export_bottom_sheet.dart';
 import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.dart';
+import 'package:lumen/features/video_studio/widgets/video_multitrack_timeline_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_text_overlay_dialog.dart';
 import 'package:lumen/features/video_studio/widgets/video_timeline_strip_widget.dart';
@@ -229,38 +229,14 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
   }
 
   Widget _buildTimelineTab(VideoEditorController ctrl) {
-    final totalDuration = ctrl.clips.fold(0, (sum, c) => sum + c.length);
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('clips'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
-              Text(
-                'clip_duration'.trParams({'seconds': '$totalDuration'}),
-                style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall, color: AppColors.gradientStart),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const VideoTimelineStripWidget(),
-          const SizedBox(height: 16),
-          if (ctrl.clips.isNotEmpty)
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
-                ),
-                onPressed: () => AddClipBottomSheet.show(context),
-                icon: const Icon(Icons.add, size: 18),
-                label: Text('add_clip'.tr, style: robotoMedium),
-              ),
-            ),
+          VideoMultiTrackTimelineWidget(),
+          SizedBox(height: 16),
+          VideoTimelineStripWidget(),
         ],
       ),
     );

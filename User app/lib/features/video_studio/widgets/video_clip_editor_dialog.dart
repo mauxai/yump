@@ -255,7 +255,7 @@ class _VideoClipEditorDialogState extends State<VideoClipEditorDialog> with Sing
                   Text('mute_clip_audio'.tr, style: robotoRegular.copyWith(fontSize: 11)),
                   Switch(
                     value: _isMuted,
-                    activeColor: Colors.redAccent,
+                    activeThumbColor: Colors.redAccent,
                     onChanged: (val) {
                       setState(() {
                         _isMuted = val;

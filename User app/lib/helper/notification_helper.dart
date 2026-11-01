@@ -15,7 +15,10 @@ import 'package:lumen/util/enums.dart';
 import 'package:path_provider/path_provider.dart';
 
 class NotificationHelper {
+  static FlutterLocalNotificationsPlugin? localNotificationsPlugin;
+
   static Future<void> initialize(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
+    localNotificationsPlugin = flutterLocalNotificationsPlugin;
     var androidInitialize = const AndroidInitializationSettings('notification_icon');
     var iOSInitialize = const DarwinInitializationSettings();
     var initializationsSettings = InitializationSettings(android: androidInitialize, iOS: iOSInitialize);
@@ -24,6 +27,13 @@ class NotificationHelper {
       onDidReceiveNotificationResponse: (NotificationResponse? notificationResponse) async {
         try {
           if (notificationResponse?.payload != null && notificationResponse!.payload!.isNotEmpty) {
+            try {
+              final Map<String, dynamic> data = jsonDecode(notificationResponse.payload!);
+              if (data['type'] == 'video_render_completed' && data['editId'] != null) {
+                Get.toNamed(RouteHelper.getVideoRenderSuccessRoute(data['editId'].toString()));
+                return;
+              }
+            } catch (_) {}
             final NotificationBody notificationBody = NotificationBody.fromJson(jsonDecode(notificationResponse.payload!));
             _handleNotificationTap(notificationBody);
           }
@@ -144,6 +154,34 @@ class NotificationHelper {
 
   static NotificationBody convertNotification(Map<String, dynamic> data) {
     return NotificationBody.fromJson(data);
+  }
+
+  static Future<void> showVideoRenderCompleteNotification({
+    required String editId,
+    required String title,
+  }) async {
+    if (localNotificationsPlugin == null) return;
+    try {
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'video_renders_channel',
+        'Video Render Notifications',
+        channelDescription: 'Notifications for completed video render jobs',
+        importance: Importance.max,
+        priority: Priority.high,
+        playSound: true,
+      );
+      const NotificationDetails details = NotificationDetails(android: androidDetails);
+      final payload = jsonEncode({'type': 'video_render_completed', 'editId': editId});
+      await localNotificationsPlugin!.show(
+        Random().nextInt(1000) + 100,
+        'render_completed_notification'.tr,
+        '${title.isEmpty ? 'video_title'.tr : title}: ${'render_completed_tap_view'.tr}',
+        details,
+        payload: payload,
+      );
+    } catch (e) {
+      if (kDebugMode) print('Error showing render completed notification: $e');
+    }
   }
 }
 

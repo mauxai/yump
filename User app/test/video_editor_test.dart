@@ -1,0 +1,243 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get/get.dart';
+import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
+import 'package:lumen/features/video_studio/models/video_editor_models.dart';
+import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
+
+class MockVideoEditorRepo extends Fake implements VideoEditorRepo {
+  @override
+  Future<Response> fetchVideoEditGallery({int page = 1, int limit = 20}) async {
+    return const Response(statusCode: 200, body: {'items': []});
+  }
+}
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('VideoEditor Models Tests', () {
+    test('TimelineClipModel serialization and copyWith', () {
+      final clip = TimelineClipModel(
+        id: 'c1',
+        videoUrl: 'https://example.com/sample.mp4',
+        length: 8,
+        trim: 2,
+        speed: 1.5,
+        fit: 'contain',
+        transitionIn: 'fade',
+        transitionOut: 'slideLeft',
+        effect: 'zoomIn',
+      );
+
+      final json = clip.toJson();
+      expect(json['id'], 'c1');
+      expect(json['length'], 8);
+      expect(json['speed'], 1.5);
+      expect(json['fit'], 'contain');
+      expect(json['transitionOut'], 'slideLeft');
+      expect(json['effect'], 'zoomIn');
+
+      final deserialized = TimelineClipModel.fromJson(json);
+      expect(deserialized.id, 'c1');
+      expect(deserialized.speed, 1.5);
+      expect(deserialized.fit, 'contain');
+
+      final copied = clip.copyWith(length: 12, speed: 2.0);
+      expect(copied.length, 12);
+      expect(copied.speed, 2.0);
+      expect(copied.videoUrl, clip.videoUrl);
+    });
+
+    test('TextOverlayModel serialization', () {
+      final overlay = TextOverlayModel(
+        id: 't1',
+        text: 'Assam Tourism',
+        position: 'topRight',
+        size: 'large',
+        color: '#facc15',
+        background: '#000000cc',
+        start: 1,
+        length: 5,
+      );
+
+      final json = overlay.toJson();
+      expect(json['text'], 'Assam Tourism');
+      expect(json['position'], 'topRight');
+      expect(json['size'], 'large');
+      expect(json['background'], '#000000cc');
+
+      final deserialized = TextOverlayModel.fromJson(json);
+      expect(deserialized.text, 'Assam Tourism');
+      expect(deserialized.size, 'large');
+      expect(deserialized.background, '#000000cc');
+    });
+
+    test('WatermarkModel serialization', () {
+      final watermark = WatermarkModel(
+        url: 'https://example.com/logo.png',
+        position: 'bottomRight',
+        opacity: 0.9,
+        scale: 0.2,
+      );
+
+      final json = watermark.toJson();
+      expect(json['position'], 'bottomRight');
+      expect(json['opacity'], 0.9);
+      expect(json['scale'], 0.2);
+
+      final deserialized = WatermarkModel.fromJson(json);
+      expect(deserialized.url, watermark.url);
+      expect(deserialized.opacity, 0.9);
+    });
+  });
+
+  group('VideoEditorController Timeline Operations', () {
+    late VideoEditorController controller;
+
+    setUp(() {
+      Get.testMode = true;
+      controller = VideoEditorController(videoEditorRepo: MockVideoEditorRepo());
+    });
+
+    tearDown(() {
+      Get.reset();
+    });
+
+    test('Add and manage clips', () {
+      controller.addClip('https://example.com/clip1.mp4', length: 10);
+      expect(controller.clips.length, 1);
+      expect(controller.clips.first.length, 10);
+
+      controller.addClip('https://example.com/clip2.mp4', length: 6);
+      expect(controller.clips.length, 2);
+      expect(controller.selectedClipIndex, 1);
+
+      controller.reorderClips(1, 0);
+      expect(controller.clips.first.videoUrl, 'https://example.com/clip2.mp4');
+    });
+
+    test('Split clip into two parts', () {
+      controller.addClip('https://example.com/clip1.mp4', length: 10);
+      expect(controller.clips.length, 1);
+
+      controller.splitClip(0, 4.0);
+      expect(controller.clips.length, 2);
+      expect(controller.clips[0].length, 4);
+      expect(controller.clips[1].length, 6);
+      expect(controller.clips[1].trim, 4);
+    });
+
+    test('Duplicate clip', () {
+      controller.addClip('https://example.com/clip1.mp4', length: 7);
+      controller.duplicateClip(0);
+
+      expect(controller.clips.length, 2);
+      expect(controller.clips[0].videoUrl, controller.clips[1].videoUrl);
+      expect(controller.clips[1].length, 7);
+    });
+
+    test('Watermark & Export settings', () {
+      controller.setWatermark(url: 'https://example.com/logo.png', position: 'topLeft', opacity: 0.8, scale: 0.15);
+      expect(controller.watermark, isNotNull);
+      expect(controller.watermark!.position, 'topLeft');
+
+      controller.setResolution('1080');
+      expect(controller.selectedResolution, '1080');
+
+      controller.setFormat('gif');
+      expect(controller.selectedFormat, 'gif');
+
+      controller.removeWatermark();
+      expect(controller.watermark, isNull);
+    });
+
+    test('Multi-Track Timeline Zoom and Global Seek', () {
+      expect(controller.timelineZoom, 24.0);
+      controller.zoomIn();
+      expect(controller.timelineZoom, 30.0);
+      controller.zoomOut();
+      expect(controller.timelineZoom, 24.0);
+
+      controller.addClip('https://example.com/clip1.mp4', length: 10);
+      controller.addClip('https://example.com/clip2.mp4', length: 15);
+      expect(controller.totalTimelineDuration, 25.0);
+
+      controller.seekGlobalTimeline(14.0);
+      expect(controller.selectedClipIndex, 1);
+    });
+
+    test('VideoEditRecordModel status getters', () {
+      final completedRecord = VideoEditRecordModel(
+        id: 'rec_1',
+        title: 'Bihu Festival Highlights',
+        status: 'COMPLETED',
+        videoUrl: 'https://example.com/bihu.mp4',
+        aspectRatio: '16:9',
+        resolution: '1080p',
+        creditCost: 3,
+        createdAt: DateTime.now(),
+      );
+      expect(completedRecord.isCompleted, isTrue);
+      expect(completedRecord.isProcessing, isFalse);
+      expect(completedRecord.isFailed, isFalse);
+
+      final processingRecord = VideoEditRecordModel(
+        id: 'rec_2',
+        title: 'Kaziranga Tour',
+        status: 'PROCESSING',
+        aspectRatio: '9:16',
+        resolution: '720p',
+        creditCost: 3,
+        createdAt: DateTime.now(),
+      );
+      expect(processingRecord.isProcessing, isTrue);
+      expect(processingRecord.isCompleted, isFalse);
+
+      final failedRecord = VideoEditRecordModel(
+        id: 'rec_3',
+        title: 'Failed Project',
+        status: 'FAILED',
+        errorMessage: 'Encoding timeout',
+        aspectRatio: '1:1',
+        resolution: '720p',
+        creditCost: 3,
+        createdAt: DateTime.now(),
+      );
+      expect(failedRecord.isFailed, isTrue);
+    });
+
+    test('Render stage tracking and restoration for editing', () {
+      expect(controller.activeRenderStage, 1);
+      expect(controller.isDownloading, isFalse);
+      expect(controller.isSharing, isFalse);
+
+      // Pre-populate clips to verify timeline preservation
+      controller.addClip('https://example.com/existing_clip.mp4', length: 12);
+      expect(controller.clips.length, 1);
+
+      final record = VideoEditRecordModel(
+        id: 'rec_restored',
+        title: 'Preserved Project Edit',
+        status: 'COMPLETED',
+        videoUrl: 'https://example.com/rendered.mp4',
+        aspectRatio: '9:16',
+        resolution: '4k',
+        creditCost: 3,
+        createdAt: DateTime.now(),
+      );
+
+      // Restoring with existing clips preserves timeline clips and sets settings
+      controller.restoreProjectForEditing(record);
+      expect(controller.clips.length, 1);
+      expect(controller.clips.first.videoUrl, 'https://example.com/existing_clip.mp4');
+      expect(controller.title, 'Preserved Project Edit');
+      expect(controller.selectedAspectRatio, '9:16');
+      expect(controller.selectedResolution, '4k');
+
+      // Test restoration when clips are empty
+      controller.clips.clear();
+      controller.restoreProjectForEditing(record);
+      expect(controller.clips.length, 1);
+      expect(controller.clips.first.videoUrl, 'https://example.com/rendered.mp4');
+    });
+  });
+}
