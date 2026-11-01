@@ -43,6 +43,11 @@ class AppConstants {
   static const String chatFeedbackUri = '/api/v1/chat/feedback';
   static const String chatAttachmentUploadUri = '/api/v1/attachments/upload';
 
+  // Image Studio (Text to Image)
+  static const String imageGenerateUri = '/api/v1/image/generate';
+  static const String imageModelsUri   = '/api/v1/image/models';
+  static const String imageGalleryUri  = '/api/v1/image/gallery';
+
   // Video Studio
   static const String videoGenerateUri = '/api/v1/video/generate';
   static const String videoStatusUri = '/api/v1/video/'; // + [id] + /status

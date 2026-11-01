@@ -14,6 +14,7 @@ import 'package:lumen/features/update/views/update_view.dart';
 import 'package:lumen/features/upgrade/views/upgrade_view.dart';
 import 'package:lumen/features/chat/views/chat_view.dart';
 import 'package:lumen/features/video_studio/views/video_studio_view.dart';
+import 'package:lumen/features/image_studio/views/image_studio_view.dart';
 import 'package:lumen/features/video_studio/views/video_editor_view.dart';
 import 'package:lumen/features/creations/views/creations_view.dart';
 import 'package:lumen/features/analytics/views/analytics_view.dart';
@@ -24,6 +25,7 @@ class RouteHelper {
   static const String signIn = '/sign-in';
   static const String dashboard = '/dashboard';
   static const String chat = '/chat';
+  static const String imageStudio = '/image-studio';
   static const String videoStudio = '/video-studio';
   static const String videoEditor = '/video-editor';
   static const String creations = '/creations';
@@ -42,6 +44,7 @@ class RouteHelper {
   static String getSignInRoute() => signIn;
   static String getDashboardRoute({int pageIndex = 0}) => '$dashboard?pageIndex=$pageIndex';
   static String getChatRoute() => chat;
+  static String getImageStudioRoute() => imageStudio;
   static String getVideoStudioRoute() => videoStudio;
   static String getVideoEditorRoute({String? initialVideoUrl}) => initialVideoUrl != null && initialVideoUrl.isNotEmpty
       ? '$videoEditor?initialVideoUrl=${Uri.encodeComponent(initialVideoUrl)}'
@@ -78,6 +81,7 @@ class RouteHelper {
       ),
     ),
     GetPage(name: chat, page: () => const ChatView()),
+    GetPage(name: imageStudio, page: () => const ImageStudioView()),
     GetPage(name: videoStudio, page: () => const VideoStudioView()),
     GetPage(
       name: videoEditor,

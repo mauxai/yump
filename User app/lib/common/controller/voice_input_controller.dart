@@ -106,9 +106,11 @@ class VoiceInputController extends GetxController implements GetxService {
           _soundLevel = level;
           update();
         },
-        localeId: localeId,
-        cancelOnError: true,
-        listenMode: ListenMode.dictation,
+        listenOptions: SpeechListenOptions(
+          localeId: localeId,
+          cancelOnError: true,
+          listenMode: ListenMode.dictation,
+        ),
       );
     } catch (e) {
       debugPrint('Speech listen failed: $e');

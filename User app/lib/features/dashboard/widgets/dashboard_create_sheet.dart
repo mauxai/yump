@@ -110,17 +110,35 @@ class DashboardCreateSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: _CreateOptionCard(
+                    icon: Icons.auto_awesome_rounded,
+                    title: 'generate_image'.tr.isNotEmpty ? 'generate_image'.tr : 'Generate Image',
+                    subtitle: 'from_text_prompt'.tr.isNotEmpty ? 'from_text_prompt'.tr : 'From prompt',
+                    color: AppColors.gradientStart,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Get.toNamed(RouteHelper.getImageStudioRoute());
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _CreateOptionCard(
                     icon: Icons.image_rounded,
                     title: 'edit_image'.tr,
                     subtitle: 'from_camera_gallery'.tr,
-                    color: AppColors.gradientStart,
+                    color: Colors.blueAccent,
                     onTap: () {
                       Navigator.pop(context);
                       _showImageSourcePicker(context);
                     },
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
                 Expanded(
                   child: _CreateOptionCard(
                     icon: Icons.videocam_rounded,
@@ -133,57 +151,20 @@ class DashboardCreateSheet extends StatelessWidget {
                     },
                   ),
                 ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _CreateOptionCard(
+                    icon: Icons.movie_creation_outlined,
+                    title: 'edit_video'.tr,
+                    subtitle: 'timeline_music_captions'.tr,
+                    color: Colors.deepPurpleAccent,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Get.toNamed(RouteHelper.getVideoEditorRoute());
+                    },
+                  ),
+                ),
               ],
-            ),
-            const SizedBox(height: 12),
-
-            InkWell(
-              onTap: () {
-                Navigator.pop(context);
-                Get.toNamed(RouteHelper.getVideoEditorRoute());
-              },
-              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurpleAccent.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(Icons.movie_creation_outlined, color: Colors.deepPurpleAccent, size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'edit_video'.tr,
-                            style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'timeline_music_captions'.tr,
-                            style: robotoRegular.copyWith(
-                              fontSize: Dimensions.fontSizeSmall,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 14),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
