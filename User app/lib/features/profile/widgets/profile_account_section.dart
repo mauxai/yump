@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lumen/common/widgets/custom_snackbar_widget.dart';
 import 'package:lumen/core/theme/app_colors.dart';
+import 'package:lumen/core/theme/theme_controller.dart';
 import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/features/profile/controllers/profile_controller.dart';
 import 'package:lumen/util/app_constants.dart';
@@ -58,10 +59,15 @@ class ProfileAccountSection extends GetView<ProfileController> {
                 onTap: () => Get.toNamed(RouteHelper.getAnalyticsRoute()),
               ),
               Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
-              _ProfileAccountTile(
-                icon: Icons.brightness_6_rounded,
-                title: 'appearance'.tr,
-                onTap: () => controller.showThemeDialog(context),
+              GetBuilder<ThemeController>(
+                builder: (themeController) {
+                  return _ProfileAccountTile(
+                    icon: Icons.brightness_6_rounded,
+                    title: 'appearance'.tr,
+                    trailingText: themeController.darkTheme ? 'dark_mode'.tr : 'light_mode'.tr,
+                    onTap: () => controller.showThemeDialog(context),
+                  );
+                },
               ),
               Divider(height: 1, color: Theme.of(context).colorScheme.outline, indent: 56),
               _ProfileAccountTile(
@@ -230,12 +236,14 @@ class _ProfileAccountTile extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
   final bool isDestructive;
+  final String? trailingText;
 
   const _ProfileAccountTile({
     required this.icon,
     required this.title,
     required this.onTap,
     this.isDestructive = false,
+    this.trailingText,
   });
 
   @override
@@ -266,6 +274,16 @@ class _ProfileAccountTile extends StatelessWidget {
                 ),
               ),
             ),
+            if (trailingText != null) ...[
+              Text(
+                trailingText!,
+                style: robotoRegular.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
             if (!isDestructive)
               Icon(
                 Icons.chevron_right,

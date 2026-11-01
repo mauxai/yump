@@ -104,8 +104,8 @@ class VideoEditorController extends GetxController implements GetxService {
     for (int i = 0; i < _selectedClipIndex && i < _clips.length; i++) {
       elapsed += _clips[i].length;
     }
-    if (_playerController != null && _isPlayerInitialized) {
-      final clipSec = _currentPosition.inMilliseconds / 1000.0;
+    if (playerController != null && _isPlayerInitialized) {
+      final clipSec = virtualCurrentPosition.inMilliseconds / 1000.0;
       elapsed += clipSec;
     }
     return elapsed;
@@ -121,22 +121,37 @@ class VideoEditorController extends GetxController implements GetxService {
         if (_selectedClipIndex != i) {
           selectClip(i);
         }
-        seekTo(Duration(milliseconds: (offsetInClip * 1000).round()));
+        seekToVirtual(Duration(milliseconds: (offsetInClip * 1000).round()));
         return;
       }
       accumulated += clipLen;
     }
   }
 
-  // --- Inline Video Player Engine ---
-  VideoPlayerController? _playerController;
-  VideoPlayerController? get playerController => _playerController;
+  // --- Inline Video Player Engine (A/B Dual-Player Ping-Pong Pipeline) ---
+  VideoPlayerController? _playerA;
+  VideoPlayerController? get playerA => _playerA;
+
+  VideoPlayerController? _playerB;
+  VideoPlayerController? get playerB => _playerB;
+
+  int _activePlayerSlot = 0; // 0 for A, 1 for B
+  int get activePlayerSlot => _activePlayerSlot;
+
+  VideoPlayerController? get playerController => _activePlayerSlot == 0 ? _playerA : _playerB;
+
+  VideoPlayerController? _soundtrackPlayer;
+  VideoPlayerController? get soundtrackPlayer => _soundtrackPlayer;
+  Timer? _driftMonitorTimer;
 
   bool _isPlaying = false;
   bool get isPlaying => _isPlaying;
 
   bool _isPlayerInitialized = false;
   bool get isPlayerInitialized => _isPlayerInitialized;
+
+  bool _isLoopSeeking = false;
+  bool get isLoopSeeking => _isLoopSeeking;
 
   bool _isPlayAllSequence = false;
   bool get isPlayAllSequence => _isPlayAllSequence;
@@ -150,6 +165,32 @@ class VideoEditorController extends GetxController implements GetxService {
   Duration _clipDuration = Duration.zero;
   Duration get clipDuration => _clipDuration;
 
+  Duration get virtualCurrentPosition {
+    if (_clips.isEmpty || _selectedClipIndex >= _clips.length || !_isPlayerInitialized) {
+      return Duration.zero;
+    }
+    final clip = _clips[_selectedClipIndex];
+    final trimMs = (clip.trim * 1000).round();
+    final curMs = _currentPosition.inMilliseconds;
+    if (curMs < trimMs) return Duration.zero;
+    final inClipMs = curMs - trimMs;
+    final maxMs = (clip.length * 1000).round();
+    return Duration(milliseconds: inClipMs.clamp(0, maxMs));
+  }
+
+  Duration get virtualClipDuration {
+    if (_clips.isEmpty || _selectedClipIndex >= _clips.length) {
+      return _clipDuration;
+    }
+    return Duration(seconds: _clips[_selectedClipIndex].length);
+  }
+
+  double get normalizedClipProgress {
+    final durMs = virtualClipDuration.inMilliseconds;
+    if (durMs <= 0) return 0.0;
+    return (virtualCurrentPosition.inMilliseconds / durMs).clamp(0.0, 1.0);
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -159,16 +200,25 @@ class VideoEditorController extends GetxController implements GetxService {
   @override
   void onClose() {
     _statusPollingTimer?.cancel();
+    _driftMonitorTimer?.cancel();
     _disposePlayer();
     super.onClose();
   }
 
   void _disposePlayer() {
-    _playerController?.removeListener(_onPlayerTick);
-    _playerController?.dispose();
-    _playerController = null;
+    _driftMonitorTimer?.cancel();
+    _driftMonitorTimer = null;
+    _playerA?.removeListener(_onPlayerTick);
+    _playerA?.dispose();
+    _playerA = null;
+    _playerB?.removeListener(_onPlayerTick);
+    _playerB?.dispose();
+    _playerB = null;
+    _soundtrackPlayer?.dispose();
+    _soundtrackPlayer = null;
     _isPlayerInitialized = false;
     _isPlaying = false;
+    _isLoopSeeking = false;
   }
 
   Future<void> initPlayerForClip(int clipIndex) async {
@@ -185,16 +235,23 @@ class VideoEditorController extends GetxController implements GetxService {
 
     try {
       final uri = Uri.parse(clip.videoUrl);
-      _playerController = VideoPlayerController.networkUrl(uri);
-      await _playerController!.initialize();
+      final controller = VideoPlayerController.networkUrl(uri);
+      await controller.initialize();
+      _activePlayerSlot = 0;
+      _playerA = controller;
       _isPlayerInitialized = true;
-      _clipDuration = _playerController!.value.duration;
-      _playerController!.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
-      _playerController!.setPlaybackSpeed(clip.speed);
+      _clipDuration = controller.value.duration;
+      controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
+      controller.setPlaybackSpeed(clip.speed);
       if (clip.trim > 0) {
-        await _playerController!.seekTo(Duration(seconds: clip.trim));
+        await controller.seekTo(Duration(seconds: clip.trim));
       }
-      _playerController!.addListener(_onPlayerTick);
+      controller.addListener(_onPlayerTick);
+
+      // Preload next clip on player B
+      if (_clips.length > 1) {
+        _preloadSlot(1, (clipIndex + 1) % _clips.length);
+      }
       update();
     } catch (e) {
       debugPrint('Error initializing inline player: $e');
@@ -203,44 +260,154 @@ class VideoEditorController extends GetxController implements GetxService {
     }
   }
 
-  void _onPlayerTick() {
-    if (_playerController == null || !_isPlayerInitialized) return;
-    _currentPosition = _playerController!.value.position;
-    final playing = _playerController!.value.isPlaying;
-    if (_isPlaying != playing) {
-      _isPlaying = playing;
+  Future<void> _preloadSlot(int slot, int clipIndex) async {
+    if (clipIndex < 0 || clipIndex >= _clips.length) return;
+    final clip = _clips[clipIndex];
+    if (clip.isImage || clip.videoUrl.isEmpty) {
+      if (slot == 0) {
+        _playerA?.removeListener(_onPlayerTick);
+        _playerA?.dispose();
+        _playerA = null;
+      } else {
+        _playerB?.removeListener(_onPlayerTick);
+        _playerB?.dispose();
+        _playerB = null;
+      }
+      return;
     }
 
-    if (_isPlayAllSequence && _playerController!.value.position >= _playerController!.value.duration && _clips.isNotEmpty) {
-      final nextIndex = (_selectedClipIndex + 1) % _clips.length;
+    try {
+      final controller = VideoPlayerController.networkUrl(Uri.parse(clip.videoUrl));
+      await controller.initialize();
+      controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
+      controller.setPlaybackSpeed(clip.speed);
+      if (clip.trim > 0) {
+        await controller.seekTo(Duration(seconds: clip.trim));
+      }
+      controller.addListener(_onPlayerTick);
+
+      if (slot == 0) {
+        _playerA?.removeListener(_onPlayerTick);
+        _playerA?.dispose();
+        _playerA = controller;
+      } else {
+        _playerB?.removeListener(_onPlayerTick);
+        _playerB?.dispose();
+        _playerB = controller;
+      }
+    } catch (e) {
+      debugPrint('Error preloading slot $slot: $e');
+    }
+  }
+
+  void _advanceToNextClip(int nextIndex) {
+    if (nextIndex < 0 || nextIndex >= _clips.length) return;
+    final nextClip = _clips[nextIndex];
+    final inactiveSlot = 1 - _activePlayerSlot;
+    final inactive = inactiveSlot == 0 ? _playerA : _playerB;
+
+    if (inactive != null && inactive.value.isInitialized && !nextClip.isImage) {
+      // Stop current player
+      playerController?.pause();
+      // Fast A/B Ping-Pong swap
+      _activePlayerSlot = inactiveSlot;
+      _selectedClipIndex = nextIndex;
+      _isPlayerInitialized = true;
+      _currentPosition = inactive.value.position;
+      inactive.setPlaybackSpeed(nextClip.speed);
+      inactive.setVolume(_isPlayerMuted ? 0.0 : (nextClip.volume ?? 1.0));
+      inactive.play();
+      _isPlaying = true;
+
+      // Preload next clip on the now-inactive slot
+      if (_clips.length > 1) {
+        final nextNextIndex = (nextIndex + 1) % _clips.length;
+        _preloadSlot(1 - _activePlayerSlot, nextNextIndex);
+      }
+    } else {
       selectClip(nextIndex);
-      _playerController?.play();
+      playerController?.play();
+    }
+    _syncSoundtrackToVideo();
+  }
+
+  void _onPlayerTick() {
+    final active = playerController;
+    if (active == null || !_isPlayerInitialized) return;
+    _currentPosition = active.value.position;
+    final playing = active.value.isPlaying;
+    if (_isPlaying != playing) {
+      _isPlaying = playing;
+      if (_isPlaying) {
+        _soundtrackPlayer?.play();
+      } else {
+        _soundtrackPlayer?.pause();
+      }
+    }
+
+    if (_clips.isNotEmpty && _selectedClipIndex < _clips.length) {
+      final clip = _clips[_selectedClipIndex];
+      final posMs = _currentPosition.inMilliseconds;
+      final trimStartMs = (clip.trim * 1000).round();
+      final trimEndMs = ((clip.trim + clip.length) * 1000).round();
+
+      // Pre-emptive loop / advance trigger 40ms before physical cut point
+      if (posMs >= trimEndMs - 40 && !_isLoopSeeking) {
+        if (_isPlayAllSequence && _clips.length > 1) {
+          final nextIndex = (_selectedClipIndex + 1) % _clips.length;
+          _advanceToNextClip(nextIndex);
+        } else {
+          _isLoopSeeking = true;
+          active.seekTo(Duration(milliseconds: trimStartMs)).then((_) {
+            _isLoopSeeking = false;
+            if (_isPlaying) {
+              active.play();
+            }
+          });
+          _syncSoundtrackToVideo();
+        }
+      }
     }
     update();
   }
 
   void togglePlayPause() {
-    if (_playerController == null || !_isPlayerInitialized) return;
-    if (_playerController!.value.isPlaying) {
-      _playerController!.pause();
+    final active = playerController;
+    if (active == null || !_isPlayerInitialized) return;
+    if (active.value.isPlaying) {
+      active.pause();
+      _soundtrackPlayer?.pause();
     } else {
-      _playerController!.play();
+      active.play();
+      _soundtrackPlayer?.play();
     }
-    _isPlaying = _playerController!.value.isPlaying;
+    _isPlaying = active.value.isPlaying;
+    update();
+  }
+
+  void seekToVirtual(Duration position) {
+    final active = playerController;
+    if (active == null || !_isPlayerInitialized) return;
+    final clip = _clips.isNotEmpty && _selectedClipIndex < _clips.length ? _clips[_selectedClipIndex] : null;
+    final trimMs = clip != null ? (clip.trim * 1000).round() : 0;
+    final targetMs = trimMs + position.inMilliseconds;
+    final rawTarget = Duration(milliseconds: targetMs);
+    active.seekTo(rawTarget);
+    _currentPosition = rawTarget;
+    _syncSoundtrackToVideo();
     update();
   }
 
   void seekTo(Duration position) {
-    if (_playerController == null || !_isPlayerInitialized) return;
-    _playerController!.seekTo(position);
-    update();
+    seekToVirtual(position);
   }
 
   void toggleMute() {
     _isPlayerMuted = !_isPlayerMuted;
-    if (_playerController != null && _isPlayerInitialized) {
+    final active = playerController;
+    if (active != null && _isPlayerInitialized) {
       final currentClip = _clips.isNotEmpty && _selectedClipIndex < _clips.length ? _clips[_selectedClipIndex] : null;
-      _playerController!.setVolume(_isPlayerMuted ? 0.0 : (currentClip?.volume ?? 1.0));
+      active.setVolume(_isPlayerMuted ? 0.0 : (currentClip?.volume ?? 1.0));
     }
     update();
   }
@@ -294,10 +461,74 @@ class VideoEditorController extends GetxController implements GetxService {
     if (volume != null) _soundtrackVolume = volume;
     if (startOffset != null) _soundtrackStartOffset = startOffset;
     if (fade != null) _soundtrackFade = fade;
+
+    _initSoundtrackPlayer();
     update();
   }
 
+  void _initSoundtrackPlayer() {
+    _driftMonitorTimer?.cancel();
+    _soundtrackPlayer?.dispose();
+    _soundtrackPlayer = null;
+    if (_soundtrackUrl.isEmpty) return;
+
+    try {
+      final uri = Uri.parse(_soundtrackUrl);
+      final sp = VideoPlayerController.networkUrl(uri);
+      sp.initialize().then((_) {
+        _soundtrackPlayer = sp;
+        sp.setVolume(_soundtrackVolume);
+        sp.setLooping(true);
+        _syncSoundtrackToVideo();
+        if (_isPlaying) {
+          sp.play();
+        }
+        _startDriftMonitor();
+        update();
+      }).catchError((e) {
+        debugPrint('Error initializing soundtrack player: $e');
+      });
+    } catch (e) {
+      debugPrint('Error starting soundtrack player: $e');
+    }
+  }
+
+  void _startDriftMonitor() {
+    _driftMonitorTimer?.cancel();
+    _driftMonitorTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      _checkAudioDrift();
+    });
+  }
+
+  void _checkAudioDrift() {
+    if (_soundtrackPlayer == null || !_soundtrackPlayer!.value.isInitialized || !_isPlaying) return;
+
+    final expectedMs = ((globalPlayheadSeconds + _soundtrackStartOffset) * 1000).round();
+    final durationMs = _soundtrackPlayer!.value.duration.inMilliseconds;
+    if (durationMs <= 0) return;
+    final clampedExpectedMs = expectedMs % durationMs;
+    final actualMs = _soundtrackPlayer!.value.position.inMilliseconds;
+
+    // Hard seek if drift exceeds 60ms threshold
+    if ((actualMs - clampedExpectedMs).abs() > 60) {
+      _soundtrackPlayer!.seekTo(Duration(milliseconds: clampedExpectedMs));
+    }
+  }
+
+  void _syncSoundtrackToVideo() {
+    if (_soundtrackPlayer == null || !_soundtrackPlayer!.value.isInitialized) return;
+    final expectedMs = ((globalPlayheadSeconds + _soundtrackStartOffset) * 1000).round();
+    final durationMs = _soundtrackPlayer!.value.duration.inMilliseconds;
+    if (durationMs > 0) {
+      _soundtrackPlayer!.seekTo(Duration(milliseconds: expectedMs % durationMs));
+    }
+  }
+
   void removeSoundtrack() {
+    _driftMonitorTimer?.cancel();
+    _driftMonitorTimer = null;
+    _soundtrackPlayer?.dispose();
+    _soundtrackPlayer = null;
     _soundtrackUrl = '';
     _soundtrackStartOffset = 0;
     _soundtrackFade = 'none';
@@ -456,8 +687,8 @@ class VideoEditorController extends GetxController implements GetxService {
   void setClipSpeed(int index, double speed) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].speed = speed;
-      if (index == _selectedClipIndex && _playerController != null && _isPlayerInitialized) {
-        _playerController!.setPlaybackSpeed(speed);
+      if (index == _selectedClipIndex && playerController != null && _isPlayerInitialized) {
+        playerController!.setPlaybackSpeed(speed);
       }
       update();
     }
@@ -466,8 +697,8 @@ class VideoEditorController extends GetxController implements GetxService {
   void setClipVolume(int index, double volume) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].volume = volume;
-      if (index == _selectedClipIndex && _playerController != null && _isPlayerInitialized) {
-        _playerController!.setVolume(_isPlayerMuted ? 0.0 : volume);
+      if (index == _selectedClipIndex && playerController != null && _isPlayerInitialized) {
+        playerController!.setVolume(_isPlayerMuted ? 0.0 : volume);
       }
       update();
     }

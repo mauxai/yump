@@ -129,16 +129,16 @@ class ProfileController extends GetxController implements GetxService {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.dark_mode_rounded, color: cs.onSurface),
-              title: Text('dark_mode'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
-              trailing: themeController.darkTheme ? Icon(Icons.check, color: cs.onSurface) : null,
-              onTap: () { themeController.setTheme(true); Get.back(); },
-            ),
-            ListTile(
               leading: Icon(Icons.light_mode_rounded, color: cs.onSurface),
               title: Text('light_mode'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
               trailing: !themeController.darkTheme ? Icon(Icons.check, color: cs.onSurface) : null,
               onTap: () { themeController.setTheme(false); Get.back(); },
+            ),
+            ListTile(
+              leading: Icon(Icons.dark_mode_rounded, color: cs.onSurface),
+              title: Text('dark_mode'.tr, style: robotoRegular.copyWith(color: cs.onSurface)),
+              trailing: themeController.darkTheme ? Icon(Icons.check, color: cs.onSurface) : null,
+              onTap: () { themeController.setTheme(true); Get.back(); },
             ),
           ],
         ),

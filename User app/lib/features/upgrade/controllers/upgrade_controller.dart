@@ -63,6 +63,9 @@ class UpgradeController extends GetxController implements GetxService {
     isLoadingGateways = false;
     if (response.statusCode == 200) {
       gateways = PaymentGateway.fromJson(response.body).gateways ?? [];
+      if (gateways.isNotEmpty) {
+        selectedGateway = gateways.first;
+      }
     } else {
       showCustomSnackBar(response.body['message']?.toString() ?? 'error');
     }
@@ -177,6 +180,9 @@ class UpgradeController extends GetxController implements GetxService {
   bool isPurchasing = false;
 
   Future<void> purchasePlan({required Plan plan, required String gatewayId}) async {
+    if (selectedGateway == null && gateways.isNotEmpty) {
+      selectedGateway = gateways.first;
+    }
     if (selectedGateway == null) {
       showCustomSnackBar('select_gateway'.tr);
       return;

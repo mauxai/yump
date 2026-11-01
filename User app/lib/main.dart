@@ -86,7 +86,9 @@ class MyApp extends StatelessWidget {
         return GetBuilder<LocalizationController>(builder: (localizationController) {
           return GetMaterialApp(
             title: AppConstants.appName,
-            theme: themeController.darkTheme ? AppTheme.dark : AppTheme.light,
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: themeController.darkTheme ? ThemeMode.dark : ThemeMode.light,
             locale: localizationController.locale,
             translations: Messages(languages: languages),
             fallbackLocale: const Locale('en', 'US'),

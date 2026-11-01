@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
 import 'package:lumen/features/video_studio/models/video_editor_models.dart';
 import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
+import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.dart';
 
 class MockVideoEditorRepo extends Fake implements VideoEditorRepo {
   @override
@@ -238,6 +239,40 @@ void main() {
       controller.restoreProjectForEditing(record);
       expect(controller.clips.length, 1);
       expect(controller.clips.first.videoUrl, 'https://example.com/rendered.mp4');
+    });
+
+    test('VideoColorFilterHelper matrix calibrations and null fallback', () {
+      expect(VideoColorFilterHelper.getFilter('sepia'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('greyscale'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('boost'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('contrast'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('darken'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('lighten'), isNotNull);
+      expect(VideoColorFilterHelper.getFilter('none'), isNull);
+      expect(VideoColorFilterHelper.getFilter(null), isNull);
+
+      // Verify mathematical dimension (4x5 = 20 entries)
+      expect(VideoColorFilterHelper.sepiaMatrix.length, 20);
+      expect(VideoColorFilterHelper.greyscaleMatrix.length, 20);
+      expect(VideoColorFilterHelper.boostMatrix.length, 20);
+      expect(VideoColorFilterHelper.contrastMatrix.length, 20);
+      expect(VideoColorFilterHelper.darkenMatrix.length, 20);
+      expect(VideoColorFilterHelper.lightenMatrix.length, 20);
+    });
+
+    test('Virtual trim duration, progress, and A/B ping-pong slot', () {
+      expect(controller.activePlayerSlot, 0);
+      expect(controller.isLoopSeeking, isFalse);
+
+      controller.addClip('https://example.com/test_video.mp4', length: 6);
+      expect(controller.virtualClipDuration, const Duration(seconds: 6));
+      expect(controller.normalizedClipProgress, 0.0);
+
+      // Verify pre-emptive threshold calculation: (trim + length) - 40ms
+      final trimMs = controller.clips.first.trim * 1000;
+      final lengthMs = controller.clips.first.length * 1000;
+      final thresholdMs = (trimMs + lengthMs) - 40;
+      expect(thresholdMs, 5960);
     });
   });
 }

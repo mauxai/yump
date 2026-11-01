@@ -20,8 +20,10 @@ class DashboardNavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedColor = isDark ? Colors.white : AppColors.gradientEnd;
     final Color color = isSelected
-        ? Colors.white
+        ? selectedColor
         : Theme.of(context).colorScheme.onSurfaceVariant;
 
     return GestureDetector(
@@ -35,7 +37,9 @@ class DashboardNavItem extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withValues(alpha: 0.08) : Colors.transparent,
+          color: isSelected
+              ? (isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.gradientEnd.withValues(alpha: 0.08))
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(Dimensions.radiusPill),
         ),
         child: Column(
@@ -55,7 +59,7 @@ class DashboardNavItem extends StatelessWidget {
             Text(
               label,
               style: (isSelected ? robotoMedium : robotoRegular).copyWith(
-                color: isSelected ? Colors.white : color,
+                color: isSelected ? selectedColor : color,
                 fontSize: 11,
                 letterSpacing: 0.2,
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'app_colors.dart';
 import '../../util/dimensions.dart';
 import '../../util/styles.dart';
@@ -93,6 +94,7 @@ class AppTheme {
         backgroundColor: AppColors.bgDark,
         foregroundColor: AppColors.textPrimaryDark,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardDark,
@@ -179,19 +181,19 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceLight,
-        contentPadding: const EdgeInsets.symmetric(vertical: Dimensions.paddingSizeLarge),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         hintStyle: baseTextTheme.bodyLarge?.copyWith(color: AppColors.textSecondaryLight),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.borderLight, width: 1),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.borderLight, width: 1),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(Dimensions.radiusLarge - 1),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+          borderSide: const BorderSide(color: AppColors.gradientEnd, width: 1.5),
         ),
       ),
       iconTheme: const IconThemeData(color: AppColors.textPrimaryLight),
@@ -201,10 +203,15 @@ class AppTheme {
         backgroundColor: AppColors.bgLight,
         foregroundColor: AppColors.textPrimaryLight,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
       ),
       cardTheme: CardThemeData(
         color: AppColors.cardLight,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusLarge)),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(Dimensions.radiusCard),
+          side: const BorderSide(color: AppColors.borderLight, width: 1),
+        ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surfaceLight,

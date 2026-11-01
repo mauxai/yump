@@ -83,6 +83,7 @@ class HomeController extends GetxController implements GetxService{
         showCreateProjectSheet(image.path);
       }
     } catch (e) {
+      debugPrint('Error picking from camera: $e');
       showCustomSnackBar(e.toString());
     }
   }
@@ -96,6 +97,7 @@ class HomeController extends GetxController implements GetxService{
         showCreateProjectSheet(image.path);
       }
     } catch (e) {
+      debugPrint('Error picking from gallery: $e');
       showCustomSnackBar(e.toString());
     }
   }

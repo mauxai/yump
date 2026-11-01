@@ -6,8 +6,96 @@ import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
 import 'package:video_player/video_player.dart';
 
-class VideoEditorInlinePreviewWidget extends StatelessWidget {
+class VideoColorFilterHelper {
+  // 1:1 Matched to FFmpeg: colorchannelmixer=.393:.769:.189:0:.349:.686:.168:0:.272:.534:.131:0
+  static const List<double> sepiaMatrix = [
+    0.393, 0.769, 0.189, 0, 0,
+    0.349, 0.686, 0.168, 0, 0,
+    0.272, 0.534, 0.131, 0, 0,
+    0.0,   0.0,   0.0,   1, 0,
+  ];
+
+  // 1:1 Matched to FFmpeg: colorchannelmixer=.2126:.7152:.0722:0:.2126:.7152:.0722:0:.2126:.7152:.0722:0
+  static const List<double> greyscaleMatrix = [
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.2126, 0.7152, 0.0722, 0, 0,
+    0.0,    0.0,    0.0,    1, 0,
+  ];
+
+  static const List<double> boostMatrix = [
+    1.35, -0.15, -0.15, 0, 0,
+    -0.15, 1.35, -0.15, 0, 0,
+    -0.15, -0.15, 1.35, 0, 0,
+    0.0,   0.0,   0.0,   1, 0,
+  ];
+
+  static const List<double> contrastMatrix = [
+    1.35, 0,    0,    0, -20,
+    0,    1.35, 0,    0, -20,
+    0,    0,    1.35, 0, -20,
+    0,    0,    0,    1, 0,
+  ];
+
+  static const List<double> darkenMatrix = [
+    0.8, 0,   0,   0, -15,
+    0,   0.8, 0,   0, -15,
+    0,   0,   0.8, 0, -15,
+    0,   0,   0,   1, 0,
+  ];
+
+  static const List<double> lightenMatrix = [
+    1.15, 0,    0,    0, 20,
+    0,    1.15, 0,    0, 20,
+    0,    0,    1.15, 0, 20,
+    0,    0,    0,    1, 0,
+  ];
+
+  static ColorFilter? getFilter(String? filterName) {
+    switch (filterName) {
+      case 'sepia':
+        return const ColorFilter.matrix(sepiaMatrix);
+      case 'greyscale':
+        return const ColorFilter.matrix(greyscaleMatrix);
+      case 'boost':
+        return const ColorFilter.matrix(boostMatrix);
+      case 'contrast':
+        return const ColorFilter.matrix(contrastMatrix);
+      case 'darken':
+        return const ColorFilter.matrix(darkenMatrix);
+      case 'lighten':
+        return const ColorFilter.matrix(lightenMatrix);
+      default:
+        return null;
+    }
+  }
+}
+
+class VideoEditorInlinePreviewWidget extends StatefulWidget {
   const VideoEditorInlinePreviewWidget({super.key});
+
+  @override
+  State<VideoEditorInlinePreviewWidget> createState() => _VideoEditorInlinePreviewWidgetState();
+}
+
+class _VideoEditorInlinePreviewWidgetState extends State<VideoEditorInlinePreviewWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _motionController;
+  int _lastClipIndex = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _motionController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 5),
+    );
+  }
+
+  @override
+  void dispose() {
+    _motionController.dispose();
+    super.dispose();
+  }
 
   String _formatDuration(Duration duration) {
     final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -39,18 +127,6 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
     }
   }
 
-  double _resolveFontSize(String size) {
-    switch (size) {
-      case 'small':
-        return 12.0;
-      case 'large':
-        return 20.0;
-      case 'medium':
-      default:
-        return 16.0;
-    }
-  }
-
   Color _parseHexColor(String hex, {Color fallback = Colors.white}) {
     try {
       String clean = hex.replaceAll('#', '');
@@ -71,6 +147,29 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
         final hasClip = clips.isNotEmpty && selectedIndex < clips.length;
         final activeClip = hasClip ? clips[selectedIndex] : null;
 
+        if (activeClip != null) {
+          final targetDurationMs = ((activeClip.length * 1000) / (activeClip.speed > 0 ? activeClip.speed : 1.0)).round();
+          if (_motionController.duration?.inMilliseconds != targetDurationMs) {
+            _motionController.duration = Duration(milliseconds: targetDurationMs > 0 ? targetDurationMs : 1000);
+          }
+
+          if (selectedIndex != _lastClipIndex) {
+            _lastClipIndex = selectedIndex;
+            _motionController.value = ctrl.normalizedClipProgress;
+          }
+
+          if (ctrl.isPlaying) {
+            if (!_motionController.isAnimating) {
+              _motionController.forward(from: ctrl.normalizedClipProgress);
+            }
+          } else {
+            if (_motionController.isAnimating) {
+              _motionController.stop();
+            }
+            _motionController.value = ctrl.normalizedClipProgress;
+          }
+        }
+
         double ratio = 16 / 9;
         switch (ctrl.selectedAspectRatio) {
           case '9:16':
@@ -87,6 +186,8 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
             break;
         }
 
+        final activePlayer = ctrl.playerController;
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
@@ -98,7 +199,7 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Screen Area with Aspect Ratio
+              // Screen Area with Aspect Ratio & Letterboxing
               Container(
                 height: 200,
                 width: double.infinity,
@@ -106,30 +207,31 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
                 alignment: Alignment.center,
                 child: AspectRatio(
                   aspectRatio: ratio,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Video Player / Image / Placeholder
-                      if (hasClip && activeClip != null) ...[
-                        if (activeClip.isImage)
-                          Image.network(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final canvasHeight = constraints.maxHeight;
+
+                      Widget mediaWidget;
+                      if (hasClip && activeClip != null) {
+                        if (activeClip.isImage) {
+                          mediaWidget = Image.network(
                             activeClip.videoUrl,
                             fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,
                             errorBuilder: (_, __, ___) => const Center(
                               child: Icon(Icons.broken_image, color: Colors.white54, size: 36),
                             ),
-                          )
-                        else if (ctrl.playerController != null && ctrl.isPlayerInitialized)
-                          FittedBox(
+                          );
+                        } else if (activePlayer != null && ctrl.isPlayerInitialized) {
+                          mediaWidget = FittedBox(
                             fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,
                             child: SizedBox(
-                              width: ctrl.playerController!.value.size.width,
-                              height: ctrl.playerController!.value.size.height,
-                              child: VideoPlayer(ctrl.playerController!),
+                              width: activePlayer.value.size.width > 0 ? activePlayer.value.size.width : 1920,
+                              height: activePlayer.value.size.height > 0 ? activePlayer.value.size.height : 1080,
+                              child: VideoPlayer(activePlayer),
                             ),
-                          )
-                        else
-                          Container(
+                          );
+                        } else {
+                          mediaWidget = Container(
                             color: Colors.black87,
                             child: Center(
                               child: Column(
@@ -148,109 +250,196 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
                                 ],
                               ),
                             ),
-                          )
-                      ] else ...[
-                        Center(
+                          );
+                        }
+
+                        // Apply 1:1 FFmpeg Calibrated GPU Color Filter Matrix
+                        final colorFilter = VideoColorFilterHelper.getFilter(activeClip.filter);
+                        if (colorFilter != null) {
+                          mediaWidget = ColorFiltered(
+                            colorFilter: colorFilter,
+                            child: mediaWidget,
+                          );
+                        }
+
+                        // Apply 60fps VSync-Decoupled Ken Burns & Transition Simulation
+                        mediaWidget = AnimatedBuilder(
+                          animation: _motionController,
+                          builder: (context, child) {
+                            final p = _motionController.value;
+                            Matrix4 transform = Matrix4.identity();
+                            final effect = activeClip.effect;
+
+                            if (effect == 'zoomIn') {
+                              final scale = 1.0 + (p * 0.25);
+                              transform = Matrix4.diagonal3Values(scale, scale, 1.0);
+                            } else if (effect == 'zoomOut') {
+                              final scale = 1.25 - (p * 0.25);
+                              transform = Matrix4.diagonal3Values(scale, scale, 1.0);
+                            } else if (effect == 'slideLeft') {
+                              transform = Matrix4.translationValues(-p * 30.0, 0, 0);
+                            } else if (effect == 'slideRight') {
+                              transform = Matrix4.translationValues(p * 30.0, 0, 0);
+                            } else if (effect == 'slideUp') {
+                              transform = Matrix4.translationValues(0, -p * 30.0, 0);
+                            } else if (effect == 'slideDown') {
+                              transform = Matrix4.translationValues(0, p * 30.0, 0);
+                            }
+
+                            // Fade In / Fade Out Transition Simulation
+                            double opacity = 1.0;
+                            final lengthSec = activeClip.length.toDouble();
+                            if (lengthSec > 0) {
+                              final curSec = p * lengthSec;
+                              if (activeClip.transitionIn == 'fade' && curSec < 0.5) {
+                                opacity = (curSec / 0.5).clamp(0.0, 1.0);
+                              } else if (activeClip.transitionOut == 'fade' && (lengthSec - curSec) < 0.5) {
+                                opacity = ((lengthSec - curSec) / 0.5).clamp(0.0, 1.0);
+                              }
+                            }
+
+                            Widget motionContent = Transform(
+                              transform: transform,
+                              alignment: Alignment.center,
+                              child: child,
+                            );
+
+                            if (opacity < 1.0) {
+                              motionContent = Opacity(opacity: opacity, child: motionContent);
+                            }
+
+                            // Loop seek freeze mask (prevents raw overrun flash)
+                            if (ctrl.isLoopSeeking) {
+                              motionContent = ColorFiltered(
+                                colorFilter: ColorFilter.mode(
+                                  Colors.black.withValues(alpha: 0.15),
+                                  BlendMode.darken,
+                                ),
+                                child: motionContent,
+                              );
+                            }
+
+                            return motionContent;
+                          },
+                          child: mediaWidget,
+                        );
+                      } else {
+                        mediaWidget = Center(
                           child: Text(
                             'no_clips_added'.tr,
                             style: robotoRegular.copyWith(color: Colors.white54),
                           ),
-                        ),
-                      ],
+                        );
+                      }
 
-                      // Live Text Overlays Rendered On Screen
-                      if (hasClip && ctrl.textOverlays.isNotEmpty)
-                        ...ctrl.textOverlays.map((overlay) {
-                          final currentSec = ctrl.currentPosition.inSeconds;
-                          final isVisible = currentSec >= overlay.start && currentSec < (overlay.start + overlay.length);
-                          if (!isVisible) return const SizedBox.shrink();
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          mediaWidget,
 
-                          final align = _resolvePosition(overlay.position);
-                          final fontSize = _resolveFontSize(overlay.size);
-                          final textColor = _parseHexColor(overlay.color, fallback: Colors.white);
-                          final bgColor = overlay.background != null && overlay.background!.isNotEmpty
-                              ? _parseHexColor(overlay.background!)
-                              : Colors.transparent;
+                          // Resolution-Independent Live Text Overlays
+                          if (hasClip && ctrl.textOverlays.isNotEmpty)
+                            ...ctrl.textOverlays.map((overlay) {
+                              final currentSec = ctrl.globalPlayheadSeconds.round();
+                              final isVisible = currentSec >= overlay.start && currentSec < (overlay.start + overlay.length);
+                              if (!isVisible) return const SizedBox.shrink();
 
-                          return Align(
-                            alignment: align,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  overlay.text,
-                                  textAlign: TextAlign.center,
-                                  style: robotoBold.copyWith(
-                                    fontSize: fontSize,
-                                    color: textColor,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black.withValues(alpha: 0.8),
-                                        blurRadius: 4,
+                              final align = _resolvePosition(overlay.position);
+                              double fontSize;
+                              if (overlay.size == 'small') {
+                                fontSize = canvasHeight * 0.06;
+                              } else if (overlay.size == 'large') {
+                                fontSize = canvasHeight * 0.11;
+                              } else {
+                                fontSize = canvasHeight * 0.08;
+                              }
+
+                              final textColor = _parseHexColor(overlay.color, fallback: Colors.white);
+                              final bgColor = overlay.background != null && overlay.background!.isNotEmpty
+                                  ? _parseHexColor(overlay.background!)
+                                  : Colors.transparent;
+
+                              return Align(
+                                alignment: align,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: bgColor,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      overlay.text,
+                                      textAlign: TextAlign.center,
+                                      style: robotoBold.copyWith(
+                                        fontSize: fontSize.clamp(10.0, 32.0),
+                                        color: textColor,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withValues(alpha: 0.85),
+                                            blurRadius: 4,
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+
+                          // Watermark / Logo Overlay
+                          if (ctrl.watermark != null && ctrl.watermark!.url.isNotEmpty)
+                            Align(
+                              alignment: _resolvePosition(ctrl.watermark!.position),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: Opacity(
+                                  opacity: ctrl.watermark!.opacity.clamp(0.1, 1.0),
+                                  child: FractionallySizedBox(
+                                    widthFactor: ctrl.watermark!.scale.clamp(0.05, 0.4),
+                                    child: Image.network(
+                                      ctrl.watermark!.url,
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          );
-                        }),
 
-                      // Watermark / Logo Overlay
-                      if (ctrl.watermark != null && ctrl.watermark!.url.isNotEmpty)
-                        Align(
-                          alignment: _resolvePosition(ctrl.watermark!.position),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Opacity(
-                              opacity: ctrl.watermark!.opacity.clamp(0.1, 1.0),
-                              child: FractionallySizedBox(
-                                widthFactor: ctrl.watermark!.scale.clamp(0.05, 0.4),
-                                child: Image.network(
-                                  ctrl.watermark!.url,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          // Mode Badge: Play All Sequence Indicator
+                          if (ctrl.isPlayAllSequence)
+                            Positioned(
+                              top: 8,
+                              left: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppColors.gradientStart.withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.playlist_play_rounded, size: 14, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'playing_sequence'.tr,
+                                      style: robotoMedium.copyWith(color: Colors.white, fontSize: 10),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-
-                      // Mode Badge: Play All Sequence Indicator
-                      if (ctrl.isPlayAllSequence)
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppColors.gradientStart.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.playlist_play_rounded, size: 14, color: Colors.white),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'playing_sequence'.tr,
-                                  style: robotoMedium.copyWith(color: Colors.white, fontSize: 10),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ),
               ),
 
-              // Player Scrubber Bar & Controls
+              // Accurate Virtual Scrubber Bar & Controls
               if (hasClip)
                 Container(
                   color: Colors.black.withValues(alpha: 0.95),
@@ -258,11 +447,11 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Scrubber Slider
+                      // Scrubber Slider strictly clamped to [0, clip.length]
                       Row(
                         children: [
                           Text(
-                            _formatDuration(ctrl.currentPosition),
+                            _formatDuration(ctrl.virtualCurrentPosition),
                             style: robotoRegular.copyWith(color: Colors.white70, fontSize: 10),
                           ),
                           Expanded(
@@ -276,19 +465,20 @@ class VideoEditorInlinePreviewWidget extends StatelessWidget {
                                 thumbColor: Colors.white,
                               ),
                               child: Slider(
-                                value: ctrl.currentPosition.inMilliseconds
+                                value: ctrl.virtualCurrentPosition.inMilliseconds
                                     .toDouble()
-                                    .clamp(0.0, ctrl.clipDuration.inMilliseconds.toDouble() > 0 ? ctrl.clipDuration.inMilliseconds.toDouble() : 1.0),
+                                    .clamp(0.0, ctrl.virtualClipDuration.inMilliseconds.toDouble() > 0 ? ctrl.virtualClipDuration.inMilliseconds.toDouble() : 1.0),
                                 min: 0.0,
-                                max: ctrl.clipDuration.inMilliseconds.toDouble() > 0 ? ctrl.clipDuration.inMilliseconds.toDouble() : 1.0,
+                                max: ctrl.virtualClipDuration.inMilliseconds.toDouble() > 0 ? ctrl.virtualClipDuration.inMilliseconds.toDouble() : 1.0,
                                 onChanged: (val) {
-                                  ctrl.seekTo(Duration(milliseconds: val.round()));
+                                  ctrl.seekToVirtual(Duration(milliseconds: val.round()));
+                                  _motionController.value = ctrl.normalizedClipProgress;
                                 },
                               ),
                             ),
                           ),
                           Text(
-                            _formatDuration(ctrl.clipDuration),
+                            _formatDuration(ctrl.virtualClipDuration),
                             style: robotoRegular.copyWith(color: Colors.white70, fontSize: 10),
                           ),
                         ],

@@ -3,7 +3,7 @@ import 'package:lumen/features/auth/repo/auth_repo.dart';
 
 class ThemeController extends GetxController {
   final AuthRepo _authRepo;
-  bool _darkTheme = true;
+  bool _darkTheme = false;
   bool get darkTheme => _darkTheme;
 
   ThemeController({required AuthRepo authRepo}) : _authRepo = authRepo;
@@ -28,7 +28,7 @@ class ThemeController extends GetxController {
 
   void _loadCurrentTheme() {
     final saved = _authRepo.getString('theme_mode');
-    _darkTheme = saved != 'light';
+    _darkTheme = saved == 'dark';
     update();
   }
 }
