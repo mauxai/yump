@@ -3,8 +3,9 @@ import 'package:lumen/util/app_constants.dart';
 class TimelineClipModel {
   String id;
   String videoUrl;
-  int length;
-  int trim;
+  String? localPath;
+  double length;
+  double trim;
   String? transitionIn;
   String? transitionOut;
   String? filter;
@@ -17,8 +18,9 @@ class TimelineClipModel {
   TimelineClipModel({
     required this.id,
     required this.videoUrl,
-    this.length = 5,
-    this.trim = 0,
+    this.localPath,
+    this.length = 5.0,
+    this.trim = 0.0,
     this.transitionIn,
     this.transitionOut,
     this.filter,
@@ -32,6 +34,7 @@ class TimelineClipModel {
   Map<String, dynamic> toJson() => {
         'id': id,
         'videoUrl': videoUrl,
+        if (localPath != null && localPath!.isNotEmpty) 'localPath': localPath,
         'length': length,
         'trim': trim,
         if (transitionIn != null && transitionIn!.isNotEmpty) 'transitionIn': transitionIn,
@@ -47,8 +50,9 @@ class TimelineClipModel {
   factory TimelineClipModel.fromJson(Map<String, dynamic> json) => TimelineClipModel(
         id: json['id'] ?? '',
         videoUrl: json['videoUrl'] ?? '',
-        length: json['length'] ?? 5,
-        trim: json['trim'] ?? 0,
+        localPath: json['localPath'],
+        length: (json['length'] as num?)?.toDouble() ?? 5.0,
+        trim: (json['trim'] as num?)?.toDouble() ?? 0.0,
         transitionIn: json['transitionIn'],
         transitionOut: json['transitionOut'],
         filter: json['filter'],
@@ -62,8 +66,9 @@ class TimelineClipModel {
   TimelineClipModel copyWith({
     String? id,
     String? videoUrl,
-    int? length,
-    int? trim,
+    String? localPath,
+    double? length,
+    double? trim,
     String? transitionIn,
     String? transitionOut,
     String? filter,
@@ -76,6 +81,7 @@ class TimelineClipModel {
     return TimelineClipModel(
       id: id ?? this.id,
       videoUrl: videoUrl ?? this.videoUrl,
+      localPath: localPath ?? this.localPath,
       length: length ?? this.length,
       trim: trim ?? this.trim,
       transitionIn: transitionIn ?? this.transitionIn,

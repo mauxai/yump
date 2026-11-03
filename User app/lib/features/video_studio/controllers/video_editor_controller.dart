@@ -15,6 +15,28 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
+class EditorHistorySnapshot {
+  final List<TimelineClipModel> clips;
+  final List<TextOverlayModel> textOverlays;
+  final String soundtrackUrl;
+  final double soundtrackVolume;
+  final int soundtrackStartOffset;
+  final String soundtrackFade;
+  final WatermarkModel? watermark;
+  final int selectedClipIndex;
+
+  EditorHistorySnapshot({
+    required this.clips,
+    required this.textOverlays,
+    required this.soundtrackUrl,
+    required this.soundtrackVolume,
+    required this.soundtrackStartOffset,
+    required this.soundtrackFade,
+    this.watermark,
+    required this.selectedClipIndex,
+  });
+}
+
 class VideoEditorController extends GetxController implements GetxService {
   final VideoEditorRepo videoEditorRepo;
   VideoEditorController({required this.videoEditorRepo});
@@ -24,6 +46,110 @@ class VideoEditorController extends GetxController implements GetxService {
 
   int _selectedClipIndex = 0;
   int get selectedClipIndex => _selectedClipIndex;
+
+  // --- CapCut-Grade Undo / Redo History Stack ---
+  final List<EditorHistorySnapshot> _undoStack = [];
+  final List<EditorHistorySnapshot> _redoStack = [];
+
+  bool get canUndo => _undoStack.isNotEmpty;
+  bool get canRedo => _redoStack.isNotEmpty;
+
+  void _pushHistory() {
+    _redoStack.clear();
+    _undoStack.add(
+      EditorHistorySnapshot(
+        clips: _clips.map((c) => c.copyWith()).toList(),
+        textOverlays: _textOverlays.map((t) => TextOverlayModel.fromJson(t.toJson())).toList(),
+        soundtrackUrl: _soundtrackUrl,
+        soundtrackVolume: _soundtrackVolume,
+        soundtrackStartOffset: _soundtrackStartOffset,
+        soundtrackFade: _soundtrackFade,
+        watermark: _watermark != null
+            ? WatermarkModel(
+                url: _watermark!.url,
+                position: _watermark!.position,
+                opacity: _watermark!.opacity,
+                scale: _watermark!.scale,
+              )
+            : null,
+        selectedClipIndex: _selectedClipIndex,
+      ),
+    );
+    if (_undoStack.length > 30) {
+      _undoStack.removeAt(0);
+    }
+  }
+
+  void undo() {
+    if (!canUndo) return;
+    _redoStack.add(
+      EditorHistorySnapshot(
+        clips: _clips.map((c) => c.copyWith()).toList(),
+        textOverlays: _textOverlays.map((t) => TextOverlayModel.fromJson(t.toJson())).toList(),
+        soundtrackUrl: _soundtrackUrl,
+        soundtrackVolume: _soundtrackVolume,
+        soundtrackStartOffset: _soundtrackStartOffset,
+        soundtrackFade: _soundtrackFade,
+        watermark: _watermark != null
+            ? WatermarkModel(
+                url: _watermark!.url,
+                position: _watermark!.position,
+                opacity: _watermark!.opacity,
+                scale: _watermark!.scale,
+              )
+            : null,
+        selectedClipIndex: _selectedClipIndex,
+      ),
+    );
+
+    final snapshot = _undoStack.removeLast();
+    _restoreFromSnapshot(snapshot);
+  }
+
+  void redo() {
+    if (!canRedo) return;
+    _undoStack.add(
+      EditorHistorySnapshot(
+        clips: _clips.map((c) => c.copyWith()).toList(),
+        textOverlays: _textOverlays.map((t) => TextOverlayModel.fromJson(t.toJson())).toList(),
+        soundtrackUrl: _soundtrackUrl,
+        soundtrackVolume: _soundtrackVolume,
+        soundtrackStartOffset: _soundtrackStartOffset,
+        soundtrackFade: _soundtrackFade,
+        watermark: _watermark != null
+            ? WatermarkModel(
+                url: _watermark!.url,
+                position: _watermark!.position,
+                opacity: _watermark!.opacity,
+                scale: _watermark!.scale,
+              )
+            : null,
+        selectedClipIndex: _selectedClipIndex,
+      ),
+    );
+
+    final snapshot = _redoStack.removeLast();
+    _restoreFromSnapshot(snapshot);
+  }
+
+  void _restoreFromSnapshot(EditorHistorySnapshot snapshot) {
+    _clips.clear();
+    _clips.addAll(snapshot.clips);
+    _textOverlays.clear();
+    _textOverlays.addAll(snapshot.textOverlays);
+    _soundtrackUrl = snapshot.soundtrackUrl;
+    _soundtrackVolume = snapshot.soundtrackVolume;
+    _soundtrackStartOffset = snapshot.soundtrackStartOffset;
+    _soundtrackFade = snapshot.soundtrackFade;
+    _watermark = snapshot.watermark;
+    _selectedClipIndex = snapshot.selectedClipIndex.clamp(0, _clips.isEmpty ? 0 : _clips.length - 1);
+    if (_clips.isNotEmpty) {
+      initPlayerForClip(_selectedClipIndex);
+    } else {
+      _disposePlayer();
+    }
+    update();
+  }
 
   final List<TextOverlayModel> _textOverlays = [];
   List<TextOverlayModel> get textOverlays => _textOverlays;
@@ -182,7 +308,7 @@ class VideoEditorController extends GetxController implements GetxService {
     if (_clips.isEmpty || _selectedClipIndex >= _clips.length) {
       return _clipDuration;
     }
-    return Duration(seconds: _clips[_selectedClipIndex].length);
+    return Duration(milliseconds: (_clips[_selectedClipIndex].length * 1000).round());
   }
 
   double get normalizedClipProgress {
@@ -224,7 +350,8 @@ class VideoEditorController extends GetxController implements GetxService {
   Future<void> initPlayerForClip(int clipIndex) async {
     if (clipIndex < 0 || clipIndex >= _clips.length) return;
     final clip = _clips[clipIndex];
-    if (clip.isImage || clip.videoUrl.isEmpty) {
+    final hasLocal = clip.localPath != null && File(clip.localPath!).existsSync();
+    if (clip.isImage || (!hasLocal && clip.videoUrl.isEmpty)) {
       _disposePlayer();
       update();
       return;
@@ -234,8 +361,12 @@ class VideoEditorController extends GetxController implements GetxService {
     update();
 
     try {
-      final uri = Uri.parse(clip.videoUrl);
-      final controller = VideoPlayerController.networkUrl(uri);
+      final VideoPlayerController controller;
+      if (hasLocal) {
+        controller = VideoPlayerController.file(File(clip.localPath!));
+      } else {
+        controller = VideoPlayerController.networkUrl(Uri.parse(clip.videoUrl));
+      }
       await controller.initialize();
       _activePlayerSlot = 0;
       _playerA = controller;
@@ -244,7 +375,7 @@ class VideoEditorController extends GetxController implements GetxService {
       controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
       controller.setPlaybackSpeed(clip.speed);
       if (clip.trim > 0) {
-        await controller.seekTo(Duration(seconds: clip.trim));
+        await controller.seekTo(Duration(milliseconds: (clip.trim * 1000).round()));
       }
       controller.addListener(_onPlayerTick);
 
@@ -263,7 +394,8 @@ class VideoEditorController extends GetxController implements GetxService {
   Future<void> _preloadSlot(int slot, int clipIndex) async {
     if (clipIndex < 0 || clipIndex >= _clips.length) return;
     final clip = _clips[clipIndex];
-    if (clip.isImage || clip.videoUrl.isEmpty) {
+    final hasLocal = clip.localPath != null && File(clip.localPath!).existsSync();
+    if (clip.isImage || (!hasLocal && clip.videoUrl.isEmpty)) {
       if (slot == 0) {
         _playerA?.removeListener(_onPlayerTick);
         _playerA?.dispose();
@@ -277,12 +409,17 @@ class VideoEditorController extends GetxController implements GetxService {
     }
 
     try {
-      final controller = VideoPlayerController.networkUrl(Uri.parse(clip.videoUrl));
+      final VideoPlayerController controller;
+      if (hasLocal) {
+        controller = VideoPlayerController.file(File(clip.localPath!));
+      } else {
+        controller = VideoPlayerController.networkUrl(Uri.parse(clip.videoUrl));
+      }
       await controller.initialize();
       controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
       controller.setPlaybackSpeed(clip.speed);
       if (clip.trim > 0) {
-        await controller.seekTo(Duration(seconds: clip.trim));
+        await controller.seekTo(Duration(milliseconds: (clip.trim * 1000).round()));
       }
       controller.addListener(_onPlayerTick);
 
@@ -509,8 +646,8 @@ class VideoEditorController extends GetxController implements GetxService {
     final clampedExpectedMs = expectedMs % durationMs;
     final actualMs = _soundtrackPlayer!.value.position.inMilliseconds;
 
-    // Hard seek if drift exceeds 60ms threshold
-    if ((actualMs - clampedExpectedMs).abs() > 60) {
+    // Hard seek only if drift exceeds 350ms to prevent jitter clicks and audible skips
+    if ((actualMs - clampedExpectedMs).abs() > 350) {
       _soundtrackPlayer!.seekTo(Duration(milliseconds: clampedExpectedMs));
     }
   }
@@ -550,10 +687,12 @@ class VideoEditorController extends GetxController implements GetxService {
     update();
   }
 
-  void addClip(String url, {int length = 5, bool isImage = false}) {
+  void addClip(String url, {double length = 5.0, bool isImage = false, String? localPath}) {
+    _pushHistory();
     final clip = TimelineClipModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       videoUrl: url,
+      localPath: localPath,
       length: length,
       isImage: isImage,
       effect: isImage ? 'zoomIn' : null,
@@ -567,6 +706,7 @@ class VideoEditorController extends GetxController implements GetxService {
 
   void removeClip(int index) {
     if (index >= 0 && index < _clips.length) {
+      _pushHistory();
       _clips.removeAt(index);
       if (_selectedClipIndex >= _clips.length) {
         _selectedClipIndex = _clips.isEmpty ? 0 : _clips.length - 1;
@@ -581,6 +721,7 @@ class VideoEditorController extends GetxController implements GetxService {
   }
 
   void reorderClips(int oldIndex, int newIndex) {
+    _pushHistory();
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
@@ -592,19 +733,20 @@ class VideoEditorController extends GetxController implements GetxService {
 
   void splitClip(int index, double atSeconds) {
     if (index < 0 || index >= _clips.length) return;
+    _pushHistory();
     final clip = _clips[index];
-    final splitTime = atSeconds.round().clamp(1, clip.length > 1 ? clip.length - 1 : 1);
+    final splitTime = atSeconds.clamp(0.1, clip.length > 0.2 ? clip.length - 0.1 : 0.1);
     final remainingLength = clip.length - splitTime;
 
-    if (remainingLength <= 0) return;
+    if (remainingLength <= 0.05) return;
 
-    clip.length = splitTime;
+    clip.length = double.parse(splitTime.toStringAsFixed(2));
 
     final secondPart = clip.copyWith(
       id: '${DateTime.now().millisecondsSinceEpoch}_split',
-      trim: clip.trim + splitTime,
-      length: remainingLength,
-      transitionIn: 'fade',
+      trim: double.parse((clip.trim + splitTime).toStringAsFixed(2)),
+      length: double.parse(remainingLength.toStringAsFixed(2)),
+      transitionIn: null,
     );
 
     _clips.insert(index + 1, secondPart);
@@ -616,6 +758,7 @@ class VideoEditorController extends GetxController implements GetxService {
 
   void duplicateClip(int index) {
     if (index < 0 || index >= _clips.length) return;
+    _pushHistory();
     final clip = _clips[index];
     final cloned = clip.copyWith(
       id: '${DateTime.now().millisecondsSinceEpoch}_dup',
@@ -627,21 +770,21 @@ class VideoEditorController extends GetxController implements GetxService {
     update();
   }
 
-  void updateClipDuration(int index, int newLength) {
+  void updateClipDuration(int index, double newLength) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].length = newLength;
       update();
     }
   }
 
-  void updateClipTrim(int index, int trim) {
+  void updateClipTrim(int index, double trim) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].trim = trim;
       update();
     }
   }
 
-  void updateClipTrimRange(int index, int trim, int length) {
+  void updateClipTrimRange(int index, double trim, double length) {
     if (index >= 0 && index < _clips.length) {
       _clips[index].trim = trim;
       _clips[index].length = length;
@@ -796,6 +939,22 @@ class VideoEditorController extends GetxController implements GetxService {
     _activeRenderStage = 1;
     _pollingTickCount = 0;
     update();
+
+    // Ensure all local clips are uploaded before submitting to Shotstack
+    for (int i = 0; i < _clips.length; i++) {
+      final c = _clips[i];
+      if (c.localPath != null && (c.videoUrl.isEmpty || !c.videoUrl.startsWith('http'))) {
+        final uploaded = await uploadMediaFile(c.localPath!, isAudio: false);
+        if (uploaded != null) {
+          c.videoUrl = uploaded;
+        } else {
+          showCustomSnackBar('Failed to upload clip #${i + 1}');
+          _isRendering = false;
+          update();
+          return;
+        }
+      }
+    }
 
     final clipPayload = _clips.map((c) => c.toJson()).toList();
     final textPayload = _textOverlays.map((t) => t.toJson()).toList();

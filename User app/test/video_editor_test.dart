@@ -274,5 +274,57 @@ void main() {
       final thresholdMs = (trimMs + lengthMs) - 40;
       expect(thresholdMs, 5960);
     });
+
+    test('CapCut Feature: Undo and Redo operations', () {
+      expect(controller.canUndo, isFalse);
+      expect(controller.canRedo, isFalse);
+
+      controller.addClip('https://example.com/undo1.mp4', length: 5.0);
+      expect(controller.clips.length, 1);
+      expect(controller.canUndo, isTrue);
+
+      controller.addClip('https://example.com/undo2.mp4', length: 4.0);
+      expect(controller.clips.length, 2);
+
+      controller.undo();
+      expect(controller.clips.length, 1);
+      expect(controller.clips.first.videoUrl, 'https://example.com/undo1.mp4');
+      expect(controller.canRedo, isTrue);
+
+      controller.redo();
+      expect(controller.clips.length, 2);
+      expect(controller.clips[1].videoUrl, 'https://example.com/undo2.mp4');
+    });
+
+    test('CapCut Feature: Sub-second precision splitting and trimming', () {
+      controller.addClip('https://example.com/precise.mp4', length: 8.5);
+      expect(controller.clips.first.length, 8.5);
+
+      controller.splitClip(0, 3.25);
+      expect(controller.clips.length, 2);
+      expect(controller.clips[0].length, 3.25);
+      expect(controller.clips[1].length, 5.25);
+      expect(controller.clips[1].trim, 3.25);
+      expect(controller.clips[1].transitionIn, isNull); // Verified: no forced fade!
+
+      controller.updateClipTrimRange(0, 0.5, 2.75);
+      expect(controller.clips[0].trim, 0.5);
+      expect(controller.clips[0].length, 2.75);
+    });
+
+    test('CapCut Feature: LocalPath zero-upload support', () {
+      final clip = TimelineClipModel(
+        id: 'local_1',
+        videoUrl: '/path/to/local.mp4',
+        localPath: '/path/to/local.mp4',
+        length: 6.2,
+      );
+      expect(clip.localPath, '/path/to/local.mp4');
+      final json = clip.toJson();
+      expect(json['localPath'], '/path/to/local.mp4');
+      final deserialized = TimelineClipModel.fromJson(json);
+      expect(deserialized.localPath, '/path/to/local.mp4');
+      expect(deserialized.length, 6.2);
+    });
   });
 }

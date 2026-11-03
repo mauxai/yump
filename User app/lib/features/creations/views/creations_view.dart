@@ -8,8 +8,10 @@ import 'package:lumen/features/gallery/models/cloud_edit_model.dart';
 import 'package:lumen/features/projects/controllers/projects_controller.dart';
 import 'package:lumen/features/projects/views/projects_view.dart';
 import 'package:lumen/features/projects/widgets/projects_view_toggle_widget.dart';
+import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
+import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
 
@@ -23,11 +25,18 @@ class CreationsView extends StatefulWidget {
 class _CreationsViewState extends State<CreationsView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _imageSubIndex = 0; // 0 = Projects, 1 = Cloud Gallery
+  int _videoSubIndex = 0; // 0 = Generated, 1 = Edited
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    if (Get.isRegistered<VideoStudioController>()) {
+      Get.find<VideoStudioController>().loadGallery();
+    }
+    if (Get.isRegistered<VideoEditorController>()) {
+      Get.find<VideoEditorController>().loadEditHistory();
+    }
   }
 
   @override
@@ -146,6 +155,38 @@ class _CreationsViewState extends State<CreationsView> with SingleTickerProvider
   }
 
   Widget _buildVideosTab(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: [
+              ChoiceChip(
+                label: Text('generated'.tr),
+                selected: _videoSubIndex == 0,
+                selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
+                onSelected: (_) => setState(() => _videoSubIndex = 0),
+              ),
+              const SizedBox(width: 8),
+              ChoiceChip(
+                label: Text('edited'.tr),
+                selected: _videoSubIndex == 1,
+                selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
+                onSelected: (_) => setState(() => _videoSubIndex = 1),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: _videoSubIndex == 0
+              ? _buildGeneratedVideosList(context)
+              : _buildEditedVideosList(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGeneratedVideosList(BuildContext context) {
     return GetBuilder<VideoStudioController>(
       builder: (ctrl) {
         if (ctrl.isLoadingGallery && ctrl.videoGallery.isEmpty) {
@@ -186,8 +227,11 @@ class _CreationsViewState extends State<CreationsView> with SingleTickerProvider
                     '${video.aspectRatio} • ${video.duration}s • ${video.status}',
                     style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
                   ),
-                  trailing: video.isCompleted
-                      ? IconButton(
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (video.isCompleted)
+                        IconButton(
                           icon: const Icon(Icons.play_circle_fill_rounded, color: AppColors.gradientStart, size: 30),
                           onPressed: () {
                             showDialog(
@@ -196,9 +240,170 @@ class _CreationsViewState extends State<CreationsView> with SingleTickerProvider
                             );
                           },
                         )
-                      : video.isProcessing
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : const Icon(Icons.error_outline, color: Colors.redAccent),
+                      else if (video.isProcessing)
+                        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      else
+                        const Icon(Icons.error_outline, color: Colors.redAccent),
+                      PopupMenuButton<String>(
+                        onSelected: (action) {
+                          if (action == 'delete') {
+                            ctrl.deleteVideo(video.id);
+                          } else if (action == 'edit' && video.videoUrl != null) {
+                            Get.toNamed(RouteHelper.getVideoEditorRoute(initialVideoUrl: video.videoUrl));
+                          }
+                        },
+                        itemBuilder: (_) => [
+                          if (video.isCompleted && video.videoUrl != null)
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.movie_creation_outlined, color: AppColors.gradientStart, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text('edit_in_video_editor'.tr, style: robotoRegular),
+                                ],
+                              ),
+                            ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                const SizedBox(width: 8),
+                                Text('delete'.tr, style: const TextStyle(color: Colors.redAccent)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEditedVideosList(BuildContext context) {
+    return GetBuilder<VideoEditorController>(
+      builder: (ctrl) {
+        if (ctrl.isLoadingHistory && ctrl.editHistory.isEmpty) {
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+        }
+
+        if (ctrl.editHistory.isEmpty) {
+          return Center(
+            child: Text(
+              'no_edits_yet'.tr,
+              style: robotoRegular.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: ctrl.loadEditHistory,
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: ctrl.editHistory.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, i) {
+              final item = ctrl.editHistory[i];
+              return Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                  side: BorderSide(color: Theme.of(context).colorScheme.outline),
+                ),
+                child: ListTile(
+                  title: Text(
+                    item.title,
+                    style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    '${item.aspectRatio} • ${item.resolution}${item.duration != null ? ' • ${item.duration!.toStringAsFixed(1)}s' : ''} • ${item.status}',
+                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeExtraSmall),
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (item.isCompleted && item.videoUrl != null)
+                        IconButton(
+                          icon: const Icon(Icons.play_circle_fill_rounded, color: AppColors.gradientStart, size: 30),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => VideoPlayerWidget(url: item.videoUrl, title: item.title),
+                            );
+                          },
+                        )
+                      else if (item.isProcessing)
+                        const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      else
+                        const Icon(Icons.error_outline, color: Colors.redAccent),
+                      PopupMenuButton<String>(
+                        onSelected: (action) {
+                          if (action == 'delete') {
+                            ctrl.deleteEdit(item.id);
+                          } else if (action == 'edit') {
+                            ctrl.restoreProjectForEditing(item);
+                          } else if (action == 'share' && item.videoUrl != null) {
+                            ctrl.shareRenderedVideo(item.videoUrl!, item.title);
+                          } else if (action == 'download' && item.videoUrl != null) {
+                            ctrl.downloadRenderedVideo(item.videoUrl!);
+                          }
+                        },
+                        itemBuilder: (_) => [
+                          if (item.isCompleted && item.videoUrl != null) ...[
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.movie_creation_outlined, color: AppColors.gradientStart, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text('edit_video'.tr, style: robotoRegular),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.share_outlined, color: AppColors.gradientStart, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text('share_video'.tr, style: robotoRegular),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'download',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.download_rounded, color: AppColors.gradientStart, size: 16),
+                                  const SizedBox(width: 8),
+                                  Text('download_video'.tr, style: robotoRegular),
+                                ],
+                              ),
+                            ),
+                          ],
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                const SizedBox(width: 8),
+                                Text('delete'.tr, style: const TextStyle(color: Colors.redAccent)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

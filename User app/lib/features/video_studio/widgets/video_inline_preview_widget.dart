@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lumen/core/theme/app_colors.dart';
@@ -214,13 +215,19 @@ class _VideoEditorInlinePreviewWidgetState extends State<VideoEditorInlinePrevie
                       Widget mediaWidget;
                       if (hasClip && activeClip != null) {
                         if (activeClip.isImage) {
-                          mediaWidget = Image.network(
-                            activeClip.videoUrl,
-                            fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Center(
-                              child: Icon(Icons.broken_image, color: Colors.white54, size: 36),
-                            ),
-                          );
+                          final hasLocalImg = activeClip.localPath != null && File(activeClip.localPath!).existsSync();
+                          mediaWidget = hasLocalImg
+                              ? Image.file(
+                                  File(activeClip.localPath!),
+                                  fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,
+                                )
+                              : Image.network(
+                                  activeClip.videoUrl,
+                                  fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(Icons.broken_image, color: Colors.white54, size: 36),
+                                  ),
+                                );
                         } else if (activePlayer != null && ctrl.isPlayerInitialized) {
                           mediaWidget = FittedBox(
                             fit: activeClip.fit == 'contain' ? BoxFit.contain : BoxFit.cover,

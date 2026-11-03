@@ -42,10 +42,7 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
     if (picked != null) {
       if (!mounted) return;
       Navigator.pop(context);
-      final uploadedUrl = await ctrl.uploadMediaFile(picked.path, isAudio: false);
-      if (uploadedUrl != null) {
-        ctrl.addClip(uploadedUrl);
-      }
+      ctrl.addClip(picked.path, localPath: picked.path);
     }
   }
 
@@ -61,14 +58,10 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
               item.path.toLowerCase().endsWith('.jpeg') ||
               item.path.toLowerCase().endsWith('.png') ||
               item.path.toLowerCase().endsWith('.webp');
-          final uploadedUrl = await ctrl.uploadMediaFile(item.path, isAudio: false);
-          if (uploadedUrl != null) {
-            ctrl.addClip(uploadedUrl, length: isImg ? 4 : 5, isImage: isImg);
-          }
+          ctrl.addClip(item.path, length: isImg ? 4.0 : 5.0, isImage: isImg, localPath: item.path);
         }
       }
     } catch (_) {
-      // Fallback to single video pick if multiple media is not supported
       _pickFromDevice(ctrl);
     }
   }
@@ -79,10 +72,7 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
     if (picked != null) {
       if (!mounted) return;
       Navigator.pop(context);
-      final uploadedUrl = await ctrl.uploadMediaFile(picked.path, isAudio: false);
-      if (uploadedUrl != null) {
-        ctrl.addClip(uploadedUrl, length: 4, isImage: true);
-      }
+      ctrl.addClip(picked.path, length: 4.0, isImage: true, localPath: picked.path);
     }
   }
 

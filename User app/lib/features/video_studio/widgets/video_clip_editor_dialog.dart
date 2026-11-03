@@ -35,8 +35,8 @@ class VideoClipEditorDialog extends StatefulWidget {
 
 class _VideoClipEditorDialogState extends State<VideoClipEditorDialog> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late int _length;
-  late int _trim;
+  late double _length;
+  late double _trim;
   late String? _transitionIn;
   late String? _transitionOut;
   late String? _filter;
@@ -160,18 +160,19 @@ class _VideoClipEditorDialogState extends State<VideoClipEditorDialog> with Sing
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('clip_duration'.trParams({'seconds': '$_length'}), style: robotoMedium),
+              Text('clip_duration'.trParams({'seconds': _length.toStringAsFixed(1)}), style: robotoMedium),
             ],
           ),
           Slider(
-            value: _length.toDouble(),
-            min: 1,
-            max: 30,
-            divisions: 29,
+            value: _length.clamp(0.1, 60.0),
+            min: 0.1,
+            max: 60.0,
+            divisions: 599,
             activeColor: AppColors.gradientStart,
-            label: '$_length s',
+            label: '${_length.toStringAsFixed(1)}s',
             onChanged: (val) {
-              setState(() => _length = val.round());
+              val = double.parse(val.toStringAsFixed(1));
+              setState(() => _length = val);
               ctrl.updateClipDuration(widget.clipIndex, _length);
             },
           ),
@@ -181,18 +182,19 @@ class _VideoClipEditorDialogState extends State<VideoClipEditorDialog> with Sing
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('clip_trim'.trParams({'seconds': '$_trim'}), style: robotoMedium),
+              Text('clip_trim'.trParams({'seconds': _trim.toStringAsFixed(1)}), style: robotoMedium),
             ],
           ),
           Slider(
-            value: _trim.toDouble(),
-            min: 0,
-            max: 30,
-            divisions: 30,
+            value: _trim.clamp(0.0, 60.0),
+            min: 0.0,
+            max: 60.0,
+            divisions: 600,
             activeColor: AppColors.gradientEnd,
-            label: '$_trim s',
+            label: '${_trim.toStringAsFixed(1)}s',
             onChanged: (val) {
-              setState(() => _trim = val.round());
+              val = double.parse(val.toStringAsFixed(1));
+              setState(() => _trim = val);
               ctrl.updateClipTrim(widget.clipIndex, _trim);
             },
           ),

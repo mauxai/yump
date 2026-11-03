@@ -10,7 +10,6 @@ import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.
 import 'package:lumen/features/video_studio/widgets/video_multitrack_timeline_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_player_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_text_overlay_dialog.dart';
-import 'package:lumen/features/video_studio/widgets/video_timeline_strip_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_watermark_dialog.dart';
 import 'package:lumen/util/app_constants.dart';
 import 'package:lumen/util/dimensions.dart';
@@ -235,8 +234,6 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           VideoMultiTrackTimelineWidget(),
-          SizedBox(height: 16),
-          VideoTimelineStripWidget(),
         ],
       ),
     );
