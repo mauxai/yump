@@ -192,9 +192,9 @@ class VideoRenderSuccessView extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // 4. Done & Return to Studio
+                  // 4. Done & Return to Home
                   TextButton(
-                    onPressed: () => Get.offAllNamed(RouteHelper.getVideoStudioRoute()),
+                    onPressed: () => Get.offAllNamed(RouteHelper.getDashboardRoute(pageIndex: 0)),
                     child: Text(
                       'done_to_studio'.tr,
                       style: robotoMedium.copyWith(

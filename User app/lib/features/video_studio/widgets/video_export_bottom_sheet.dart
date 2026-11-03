@@ -80,6 +80,29 @@ class _VideoExportBottomSheetState extends State<VideoExportBottomSheet> {
               ),
               const SizedBox(height: 16),
 
+              // Auto-detection badge indicator
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                  border: Border.all(color: Colors.indigoAccent.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.auto_awesome, size: 14, color: Colors.cyanAccent),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Auto-selected best fit: $_aspectRatio • ${_resolution == "1080" ? "1080p Full HD" : _resolution.toUpperCase()}',
+                        style: robotoMedium.copyWith(fontSize: 11, color: Colors.cyanAccent),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Resolution
               Text('render_resolution'.tr, style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault)),
               const SizedBox(height: 8),
@@ -88,8 +111,26 @@ class _VideoExportBottomSheetState extends State<VideoExportBottomSheet> {
                 runSpacing: 8,
                 children: AppConstants.videoResolutions.map((r) {
                   final isSel = _resolution == r['value'];
+                  final isAutoBestFit = ctrl.selectedResolution == r['value'];
                   return ChoiceChip(
-                    label: Text(r['label']!, style: robotoMedium.copyWith(fontSize: 11)),
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(r['label']!, style: robotoMedium.copyWith(fontSize: 11)),
+                        if (isAutoBestFit) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.green, width: 0.5),
+                            ),
+                            child: const Text('Best Fit', style: TextStyle(fontSize: 8, color: Colors.green, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ],
+                    ),
                     selected: isSel,
                     selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                     onSelected: (_) => setState(() => _resolution = r['value']!),
@@ -125,10 +166,28 @@ class _VideoExportBottomSheetState extends State<VideoExportBottomSheet> {
                 child: Row(
                   children: AppConstants.videoAspectRatios.map((ratio) {
                     final isSel = _aspectRatio == ratio;
+                    final isAutoBestFit = ctrl.selectedAspectRatio == ratio;
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ChoiceChip(
-                        label: Text(ratio, style: robotoMedium.copyWith(fontSize: 11)),
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(ratio, style: robotoMedium.copyWith(fontSize: 11)),
+                            if (isAutoBestFit) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.green, width: 0.5),
+                                ),
+                                child: const Text('Best Fit', style: TextStyle(fontSize: 8, color: Colors.green, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ],
+                        ),
                         selected: isSel,
                         selectedColor: AppColors.gradientStart.withValues(alpha: 0.2),
                         onSelected: (_) => setState(() => _aspectRatio = ratio),

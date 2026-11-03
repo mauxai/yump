@@ -5,6 +5,7 @@ import 'package:lumen/common/widgets/custom_appbar_widget.dart';
 import 'package:lumen/common/widgets/custom_gradient_button.dart';
 import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
+import 'package:lumen/features/video_studio/widgets/add_clip_bottom_sheet.dart';
 import 'package:lumen/features/video_studio/widgets/video_export_bottom_sheet.dart';
 import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.dart';
 import 'package:lumen/features/video_studio/widgets/video_multitrack_timeline_widget.dart';
@@ -86,19 +87,54 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
   }
 
   Future<bool> _confirmExit() async {
-    if (_ctrl.clips.isEmpty) return true;
+    if (_ctrl.clips.isEmpty) {
+      _ctrl.resetEditor();
+      return true;
+    }
     if (!mounted) return true;
     final res = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('exit'.tr, style: robotoBold),
-        content: Text('discard_edit_confirm'.tr, style: robotoRegular),
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusDefault)),
+        title: Row(
+          children: [
+            const Icon(Icons.save_as_rounded, color: AppColors.gradientStart, size: 22),
+            const SizedBox(width: 8),
+            Text('save_as_draft'.tr.isNotEmpty ? 'save_as_draft'.tr : 'Save Draft & Exit', style: robotoBold),
+          ],
+        ),
+        content: Text(
+          'save_draft_confirm_desc'.tr.isNotEmpty
+              ? 'save_draft_confirm_desc'.tr
+              : 'Save your current video edit as a draft so you can resume it anytime?',
+          style: robotoRegular,
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('cancel'.tr)),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text('cancel'.tr),
+          ),
+          TextButton(
+            onPressed: () {
+              _ctrl.resetEditor();
+              Navigator.pop(dialogContext, true);
+            },
+            child: Text('discard'.tr, style: const TextStyle(color: Colors.redAccent)),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('exit'.tr),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.gradientStart,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
+            ),
+            onPressed: () async {
+              await _ctrl.saveCurrentAsDraft();
+              _ctrl.resetEditor();
+              if (dialogContext.mounted) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            child: Text('save_draft'.tr.isNotEmpty ? 'save_draft'.tr : 'Save Draft'),
           ),
         ],
       ),
@@ -199,7 +235,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
                     Tab(text: 'soundtrack'.tr),
                     Tab(text: 'text_overlays'.tr),
                     Tab(text: 'watermark_branding'.tr),
-                    Tab(text: 'video_edits_history'.tr),
+                    Tab(text: 'drafts_and_history'.tr.isNotEmpty ? 'drafts_and_history'.tr : 'Drafts & History'),
                   ],
                 ),
 
@@ -228,12 +264,56 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
   }
 
   Widget _buildTimelineTab(VideoEditorController ctrl) {
-    return const SingleChildScrollView(
-      padding: EdgeInsets.all(16),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          VideoMultiTrackTimelineWidget(),
+          const VideoMultiTrackTimelineWidget(),
+          const SizedBox(height: 14),
+
+          // Quick Action Bar: Add More Clips / Photos
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${ctrl.clips.length} ${ctrl.clips.length == 1 ? 'Clip' : 'Clips'} in Timeline',
+                      style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Total Duration: ${ctrl.totalTimelineDuration.toStringAsFixed(1)}s',
+                      style: robotoRegular.copyWith(
+                        fontSize: 12,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.gradientStart,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  ),
+                  onPressed: () => AddClipBottomSheet.show(context),
+                  icon: const Icon(Icons.add_to_photos_rounded, size: 18),
+                  label: Text('add_clip'.tr, style: robotoBold.copyWith(fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -521,7 +601,7 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (ctrl.editHistory.isEmpty) {
+    if (ctrl.drafts.isEmpty && ctrl.editHistory.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -533,78 +613,160 @@ class _VideoEditorViewState extends State<VideoEditorView> with SingleTickerProv
       );
     }
 
-    return ListView.separated(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: ctrl.editHistory.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) {
-        final item = ctrl.editHistory[i];
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-            border: Border.all(color: Theme.of(context).colorScheme.outline),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // --- 1. Drafts Section ---
+        if (ctrl.drafts.isNotEmpty) ...[
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const Icon(Icons.drafts_rounded, size: 16, color: AppColors.gradientStart),
+              const SizedBox(width: 6),
+              Text(
+                'Drafts (${ctrl.drafts.length})',
+                style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...ctrl.drafts.map((draft) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                border: Border.all(color: AppColors.gradientStart.withValues(alpha: 0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          draft.title,
+                          style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                        onPressed: () => ctrl.deleteDraft(draft.id),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                    onPressed: () => ctrl.deleteEdit(item.id),
+                  Text(
+                    '${draft.clips.length} ${draft.clips.length == 1 ? "clip" : "clips"} • ${draft.aspectRatio} • ${draft.resolution.toUpperCase()}',
+                    style: robotoRegular.copyWith(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.gradientStart,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Dimensions.radiusSmall)),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    ),
+                    onPressed: () {
+                      ctrl.loadDraft(draft);
+                      _tabController.animateTo(0);
+                    },
+                    icon: const Icon(Icons.play_circle_outline_rounded, size: 16),
+                    label: const Text('Resume Draft', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
+
+        // --- 2. Render History Section ---
+        if (ctrl.editHistory.isNotEmpty) ...[
+          Row(
+            children: [
+              const Icon(Icons.history_rounded, size: 16, color: Colors.indigoAccent),
+              const SizedBox(width: 6),
               Text(
-                '${item.aspectRatio} • ${item.resolution} • ${item.status}',
-                style: robotoRegular.copyWith(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                'Render History (${ctrl.editHistory.length})',
+                style: robotoBold.copyWith(fontSize: Dimensions.fontSizeDefault),
               ),
-              const SizedBox(height: 8),
-              if (item.isProcessing)
-                Row(
-                  children: [
-                    const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                    const SizedBox(width: 8),
-                    Text('rendering_video'.tr, style: robotoRegular.copyWith(fontSize: 12)),
-                  ],
-                )
-              else if (item.isCompleted && item.videoUrl != null)
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gradientStart,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (_) => VideoPlayerWidget(url: item.videoUrl, title: item.title),
-                    );
-                  },
-                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                  label: Text('play_video'.tr),
-                )
-              else if (item.isFailed)
-                Text(
-                  '${'failed'.tr}: ${item.errorMessage ?? 'error_occurred'.tr}',
-                  style: robotoRegular.copyWith(fontSize: 12, color: Colors.redAccent),
-                ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          ...ctrl.editHistory.map((item) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                border: Border.all(color: Theme.of(context).colorScheme.outline),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.title,
+                          style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeDefault),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
+                        onPressed: () => ctrl.deleteEdit(item.id),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item.aspectRatio} • ${item.resolution} • ${item.status}',
+                    style: robotoRegular.copyWith(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 8),
+                  if (item.isProcessing)
+                    Row(
+                      children: [
+                        const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                        const SizedBox(width: 8),
+                        Text('rendering_video'.tr, style: robotoRegular.copyWith(fontSize: 12)),
+                      ],
+                    )
+                  else if (item.isCompleted && item.videoUrl != null)
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.gradientStart,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => VideoPlayerWidget(url: item.videoUrl, title: item.title),
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                      label: Text('play_video'.tr),
+                    )
+                  else if (item.isFailed)
+                    Text(
+                      '${'failed'.tr}: ${item.errorMessage ?? 'error_occurred'.tr}',
+                      style: robotoRegular.copyWith(fontSize: 12, color: Colors.redAccent),
+                    ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ],
     );
   }
 

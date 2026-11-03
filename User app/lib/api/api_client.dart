@@ -102,7 +102,9 @@ class ApiClient extends GetxService {
       debugPrint('====> API Call: $uri\nHeader: $_mainHeaders');
       debugPrint('====> API Body: $body with ${multipartBody.length} and multipart ${otherFile.length}');
       http.MultipartRequest request = http.MultipartRequest('POST', Uri.parse(appBaseUrl+uri));
-      request.headers.addAll(headers ?? _mainHeaders);
+      final headerMap = Map<String, String>.from(headers ?? _mainHeaders);
+      headerMap.remove('Content-Type');
+      request.headers.addAll(headerMap);
       for(MultipartBody multipart in multipartBody) {
         if(multipart.file != null) {
           if(foundation.kIsWeb) {

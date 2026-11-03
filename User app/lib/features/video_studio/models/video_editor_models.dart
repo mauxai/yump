@@ -227,3 +227,73 @@ class VideoEditRecordModel {
     );
   }
 }
+
+class VideoEditorDraftModel {
+  final String id;
+  final String title;
+  final DateTime updatedAt;
+  final List<TimelineClipModel> clips;
+  final List<TextOverlayModel> textOverlays;
+  final WatermarkModel? watermark;
+  final String soundtrackUrl;
+  final double soundtrackVolume;
+  final int soundtrackStartOffset;
+  final String soundtrackFade;
+  final String aspectRatio;
+  final String resolution;
+  final String format;
+
+  VideoEditorDraftModel({
+    required this.id,
+    required this.title,
+    required this.updatedAt,
+    required this.clips,
+    this.textOverlays = const [],
+    this.watermark,
+    this.soundtrackUrl = '',
+    this.soundtrackVolume = 0.5,
+    this.soundtrackStartOffset = 0,
+    this.soundtrackFade = 'none',
+    this.aspectRatio = '16:9',
+    this.resolution = 'hd',
+    this.format = 'mp4',
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'updatedAt': updatedAt.toIso8601String(),
+    'clips': clips.map((c) => c.toJson()).toList(),
+    'textOverlays': textOverlays.map((t) => t.toJson()).toList(),
+    if (watermark != null) 'watermark': watermark!.toJson(),
+    'soundtrackUrl': soundtrackUrl,
+    'soundtrackVolume': soundtrackVolume,
+    'soundtrackStartOffset': soundtrackStartOffset,
+    'soundtrackFade': soundtrackFade,
+    'aspectRatio': aspectRatio,
+    'resolution': resolution,
+    'format': format,
+  };
+
+  factory VideoEditorDraftModel.fromJson(Map<String, dynamic> json) => VideoEditorDraftModel(
+    id: json['id'] ?? '',
+    title: json['title'] ?? 'Draft',
+    updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : DateTime.now(),
+    clips: (json['clips'] as List<dynamic>?)
+            ?.map((c) => TimelineClipModel.fromJson(c as Map<String, dynamic>))
+            .toList() ??
+        [],
+    textOverlays: (json['textOverlays'] as List<dynamic>?)
+            ?.map((t) => TextOverlayModel.fromJson(t as Map<String, dynamic>))
+            .toList() ??
+        [],
+    watermark: json['watermark'] != null ? WatermarkModel.fromJson(json['watermark']) : null,
+    soundtrackUrl: json['soundtrackUrl'] ?? '',
+    soundtrackVolume: (json['soundtrackVolume'] as num?)?.toDouble() ?? 0.5,
+    soundtrackStartOffset: (json['soundtrackStartOffset'] as num?)?.toInt() ?? 0,
+    soundtrackFade: json['soundtrackFade'] ?? 'none',
+    aspectRatio: json['aspectRatio'] ?? '16:9',
+    resolution: json['resolution'] ?? 'hd',
+    format: json['format'] ?? 'mp4',
+  );
+}

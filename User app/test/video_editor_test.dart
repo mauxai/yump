@@ -6,9 +6,19 @@ import 'package:lumen/features/video_studio/repo/video_editor_repo.dart';
 import 'package:lumen/features/video_studio/widgets/video_inline_preview_widget.dart';
 
 class MockVideoEditorRepo extends Fake implements VideoEditorRepo {
+  String? lastUploadedMediaType;
+  String? lastUploadedFilePath;
+
   @override
   Future<Response> fetchVideoEditGallery({int page = 1, int limit = 20}) async {
     return const Response(statusCode: 200, body: {'items': []});
+  }
+
+  @override
+  Future<Response> uploadMedia({required String filePath, required String mediaType}) async {
+    lastUploadedFilePath = filePath;
+    lastUploadedMediaType = mediaType;
+    return const Response(statusCode: 200, body: {'url': 'https://example.com/uploaded.png'});
   }
 }
 
@@ -325,6 +335,114 @@ void main() {
       final deserialized = TimelineClipModel.fromJson(json);
       expect(deserialized.localPath, '/path/to/local.mp4');
       expect(deserialized.length, 6.2);
+    });
+
+    test('CapCut Feature: Auto-detect aspect ratio and resolution quality', () {
+      // Portrait video (e.g. 1080x1920) -> 9:16 and 1080
+      controller.autoDetectAspectAndQuality(1080, 1920);
+      expect(controller.selectedAspectRatio, '9:16');
+      expect(controller.selectedResolution, '1080');
+
+      // Landscape video (e.g. 1280x720) -> 16:9 and hd
+      controller.autoDetectAspectAndQuality(1280, 720);
+      expect(controller.selectedAspectRatio, '16:9');
+      expect(controller.selectedResolution, 'hd');
+
+      // Square video (e.g. 1000x1000) -> 1:1 and hd
+      controller.autoDetectAspectAndQuality(1000, 1000);
+      expect(controller.selectedAspectRatio, '1:1');
+      expect(controller.selectedResolution, 'hd');
+
+      // 4:5 Instagram feed ratio (e.g. 800x1000) -> 4:5 and hd
+      controller.autoDetectAspectAndQuality(800, 1000);
+      expect(controller.selectedAspectRatio, '4:5');
+
+      // 4:3 video (e.g. 640x480) -> 4:3 and sd
+      controller.autoDetectAspectAndQuality(640, 480);
+      expect(controller.selectedAspectRatio, '4:3');
+      expect(controller.selectedResolution, 'sd');
+
+      // Low resolution (e.g. 320x240) -> mobile
+      controller.autoDetectAspectAndQuality(320, 240);
+      expect(controller.selectedResolution, 'mobile');
+    });
+
+    test('CapCut Feature: Media upload detects image, audio, and video types', () async {
+      final mockRepo = controller.videoEditorRepo as MockVideoEditorRepo;
+
+      // Watermark image
+      final imgUrl = await controller.uploadMediaFile('assets/logo.png', mediaType: 'image');
+      expect(imgUrl, 'https://example.com/uploaded.png');
+      expect(mockRepo.lastUploadedMediaType, 'image');
+
+      // Auto-detect image from extension
+      await controller.uploadMediaFile('pictures/watermark.jpg');
+      expect(mockRepo.lastUploadedMediaType, 'image');
+
+      // Audio file
+      await controller.uploadMediaFile('music/soundtrack.mp3', isAudio: true);
+      expect(mockRepo.lastUploadedMediaType, 'audio');
+
+      // Video file
+      await controller.uploadMediaFile('videos/clip.mp4');
+      expect(mockRepo.lastUploadedMediaType, 'video');
+    });
+
+    test('CapCut Feature: Draft model serialization and draft management', () {
+      final draft = VideoEditorDraftModel(
+        id: 'draft_101',
+        title: 'Summer Vacation',
+        updatedAt: DateTime.now(),
+        clips: [
+          TimelineClipModel(id: 'c1', videoUrl: 'https://example.com/v1.mp4', length: 12.0),
+          TimelineClipModel(id: 'c2', videoUrl: 'https://example.com/p1.jpg', length: 4.0, isImage: true),
+        ],
+        aspectRatio: '9:16',
+        resolution: '1080',
+      );
+
+      final json = draft.toJson();
+      expect(json['id'], 'draft_101');
+      expect(json['title'], 'Summer Vacation');
+      expect((json['clips'] as List).length, 2);
+
+      final fromJson = VideoEditorDraftModel.fromJson(json);
+      expect(fromJson.id, 'draft_101');
+      expect(fromJson.title, 'Summer Vacation');
+      expect(fromJson.clips.length, 2);
+      expect(fromJson.clips[1].isImage, isTrue);
+
+      // Load draft into controller
+      controller.loadDraft(draft);
+      expect(controller.title, 'Summer Vacation');
+      expect(controller.clips.length, 2);
+      expect(controller.selectedAspectRatio, '9:16');
+      expect(controller.selectedResolution, '1080');
+
+      // Reset editor clears everything for fresh project
+      controller.resetEditor();
+      expect(controller.clips.isEmpty, isTrue);
+      expect(controller.title, 'My Video Edit');
+    });
+
+    test('CapCut Feature: Image clip plays on timeline without error', () {
+      controller.addClip('https://example.com/slide.jpg', length: 4.0, isImage: true);
+      expect(controller.clips.length, 1);
+      expect(controller.clips.first.isImage, isTrue);
+      expect(controller.isPlayerInitialized, isTrue);
+      expect(controller.virtualClipDuration.inSeconds, 4);
+
+      // Play image clip
+      controller.togglePlayPause();
+      expect(controller.isPlaying, isTrue);
+
+      // Seek in image clip
+      controller.seekToVirtual(const Duration(seconds: 2));
+      expect(controller.virtualCurrentPosition.inSeconds, 2);
+
+      // Pause image clip
+      controller.togglePlayPause();
+      expect(controller.isPlaying, isFalse);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +7,7 @@ import 'package:lumen/features/video_studio/controllers/video_editor_controller.
 import 'package:lumen/features/video_studio/controllers/video_studio_controller.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
+import 'package:video_player/video_player.dart';
 
 class AddClipBottomSheet extends StatefulWidget {
   const AddClipBottomSheet({super.key});
@@ -42,7 +44,17 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
     if (picked != null) {
       if (!mounted) return;
       Navigator.pop(context);
-      ctrl.addClip(picked.path, localPath: picked.path);
+      double length = 5.0;
+      try {
+        final probePlayer = VideoPlayerController.file(File(picked.path));
+        await probePlayer.initialize();
+        final dur = probePlayer.value.duration.inMilliseconds / 1000.0;
+        if (dur > 0) {
+          length = double.parse(dur.toStringAsFixed(2));
+        }
+        await probePlayer.dispose();
+      } catch (_) {}
+      ctrl.addClip(picked.path, length: length, localPath: picked.path);
     }
   }
 
@@ -58,7 +70,19 @@ class _AddClipBottomSheetState extends State<AddClipBottomSheet> {
               item.path.toLowerCase().endsWith('.jpeg') ||
               item.path.toLowerCase().endsWith('.png') ||
               item.path.toLowerCase().endsWith('.webp');
-          ctrl.addClip(item.path, length: isImg ? 4.0 : 5.0, isImage: isImg, localPath: item.path);
+          double length = isImg ? 4.0 : 5.0;
+          if (!isImg) {
+            try {
+              final probePlayer = VideoPlayerController.file(File(item.path));
+              await probePlayer.initialize();
+              final dur = probePlayer.value.duration.inMilliseconds / 1000.0;
+              if (dur > 0) {
+                length = double.parse(dur.toStringAsFixed(2));
+              }
+              await probePlayer.dispose();
+            } catch (_) {}
+          }
+          ctrl.addClip(item.path, length: length, isImage: isImg, localPath: item.path);
         }
       }
     } catch (_) {

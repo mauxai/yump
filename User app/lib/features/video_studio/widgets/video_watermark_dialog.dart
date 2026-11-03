@@ -50,7 +50,7 @@ class _VideoWatermarkDialogState extends State<VideoWatermarkDialog> {
     final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
       setState(() => _isUploading = true);
-      final uploadedUrl = await ctrl.uploadMediaFile(picked.path, isAudio: false);
+      final uploadedUrl = await ctrl.uploadMediaFile(picked.path, mediaType: 'image');
       if (mounted) {
         setState(() {
           _isUploading = false;

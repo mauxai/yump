@@ -5,6 +5,7 @@ import 'package:lumen/core/theme/app_colors.dart';
 import 'package:lumen/features/chat/controllers/chat_controller.dart';
 import 'package:lumen/features/dashboard/controllers/dashboard_controller.dart';
 import 'package:lumen/features/home/controllers/home_controller.dart';
+import 'package:lumen/features/video_studio/controllers/video_editor_controller.dart';
 import 'package:lumen/helper/route_helper.dart';
 import 'package:lumen/util/dimensions.dart';
 import 'package:lumen/util/styles.dart';
@@ -174,6 +175,9 @@ class _DashboardCreateSheetState extends State<DashboardCreateSheet> {
                         color: Colors.deepPurpleAccent,
                         onTap: () {
                           Navigator.pop(context);
+                          if (Get.isRegistered<VideoEditorController>()) {
+                            Get.find<VideoEditorController>().resetEditor();
+                          }
                           Get.toNamed(RouteHelper.getVideoEditorRoute());
                         },
                       ),

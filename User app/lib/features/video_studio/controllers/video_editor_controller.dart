@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
@@ -13,6 +14,7 @@ import 'package:lumen/helper/notification_helper.dart';
 import 'package:lumen/helper/route_helper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 
 class EditorHistorySnapshot {
@@ -163,6 +165,12 @@ class VideoEditorController extends GetxController implements GetxService {
   String _selectedResolution = 'hd';
   String get selectedResolution => _selectedResolution;
 
+  bool _hasCustomAspectRatio = false;
+  bool get hasCustomAspectRatio => _hasCustomAspectRatio;
+
+  bool _hasCustomResolution = false;
+  bool get hasCustomResolution => _hasCustomResolution;
+
   String _selectedFormat = 'mp4';
   String get selectedFormat => _selectedFormat;
 
@@ -269,6 +277,7 @@ class VideoEditorController extends GetxController implements GetxService {
   VideoPlayerController? _soundtrackPlayer;
   VideoPlayerController? get soundtrackPlayer => _soundtrackPlayer;
   Timer? _driftMonitorTimer;
+  Timer? _imagePlaybackTimer;
 
   bool _isPlaying = false;
   bool get isPlaying => _isPlaying;
@@ -296,6 +305,10 @@ class VideoEditorController extends GetxController implements GetxService {
       return Duration.zero;
     }
     final clip = _clips[_selectedClipIndex];
+    if (clip.isImage) {
+      final maxMs = (clip.length * 1000).round();
+      return Duration(milliseconds: _currentPosition.inMilliseconds.clamp(0, maxMs));
+    }
     final trimMs = (clip.trim * 1000).round();
     final curMs = _currentPosition.inMilliseconds;
     if (curMs < trimMs) return Duration.zero;
@@ -320,11 +333,14 @@ class VideoEditorController extends GetxController implements GetxService {
   @override
   void onInit() {
     super.onInit();
+    loadDrafts();
+    loadDrafts();
     loadEditHistory();
   }
 
   @override
   void onClose() {
+    _imagePlaybackTimer?.cancel();
     _statusPollingTimer?.cancel();
     _driftMonitorTimer?.cancel();
     _disposePlayer();
@@ -332,6 +348,8 @@ class VideoEditorController extends GetxController implements GetxService {
   }
 
   void _disposePlayer() {
+    _imagePlaybackTimer?.cancel();
+    _imagePlaybackTimer = null;
     _driftMonitorTimer?.cancel();
     _driftMonitorTimer = null;
     _playerA?.removeListener(_onPlayerTick);
@@ -351,7 +369,20 @@ class VideoEditorController extends GetxController implements GetxService {
     if (clipIndex < 0 || clipIndex >= _clips.length) return;
     final clip = _clips[clipIndex];
     final hasLocal = clip.localPath != null && File(clip.localPath!).existsSync();
-    if (clip.isImage || (!hasLocal && clip.videoUrl.isEmpty)) {
+
+    _imagePlaybackTimer?.cancel();
+    _imagePlaybackTimer = null;
+
+    if (clip.isImage) {
+      _disposePlayer();
+      _isPlayerInitialized = true;
+      _clipDuration = Duration(milliseconds: (clip.length * 1000).round());
+      _currentPosition = Duration.zero;
+      update();
+      return;
+    }
+
+    if (!hasLocal && clip.videoUrl.isEmpty) {
       _disposePlayer();
       update();
       return;
@@ -372,6 +403,21 @@ class VideoEditorController extends GetxController implements GetxService {
       _playerA = controller;
       _isPlayerInitialized = true;
       _clipDuration = controller.value.duration;
+
+      // CapCut Auto-detection: Update clip duration to real video length if default/unset
+      final videoDurationSec = controller.value.duration.inMilliseconds / 1000.0;
+      if (videoDurationSec > 0 && (clip.length == 5.0 || clip.length <= 0.0)) {
+        clip.length = double.parse(videoDurationSec.toStringAsFixed(2));
+      }
+
+      // CapCut Auto-detection: Auto choose best fitting aspect ratio and quality from first video clip
+      if (!_hasCustomAspectRatio || _clips.length == 1) {
+        final videoSize = controller.value.size;
+        if (videoSize.width > 0 && videoSize.height > 0) {
+          autoDetectAspectAndQuality(videoSize.width, videoSize.height);
+        }
+      }
+
       controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
       controller.setPlaybackSpeed(clip.speed);
       if (clip.trim > 0) {
@@ -416,6 +462,10 @@ class VideoEditorController extends GetxController implements GetxService {
         controller = VideoPlayerController.networkUrl(Uri.parse(clip.videoUrl));
       }
       await controller.initialize();
+      final videoDurationSec = controller.value.duration.inMilliseconds / 1000.0;
+      if (videoDurationSec > 0 && (clip.length == 5.0 || clip.length <= 0.0)) {
+        clip.length = double.parse(videoDurationSec.toStringAsFixed(2));
+      }
       controller.setVolume(_isPlayerMuted ? 0.0 : (clip.volume ?? 1.0));
       controller.setPlaybackSpeed(clip.speed);
       if (clip.trim > 0) {
@@ -440,10 +490,28 @@ class VideoEditorController extends GetxController implements GetxService {
   void _advanceToNextClip(int nextIndex) {
     if (nextIndex < 0 || nextIndex >= _clips.length) return;
     final nextClip = _clips[nextIndex];
+
+    _imagePlaybackTimer?.cancel();
+    _imagePlaybackTimer = null;
+
+    if (nextClip.isImage) {
+      playerController?.pause();
+      _selectedClipIndex = nextIndex;
+      _isPlayerInitialized = true;
+      _clipDuration = Duration(milliseconds: (nextClip.length * 1000).round());
+      _currentPosition = Duration.zero;
+      _isPlaying = true;
+      _soundtrackPlayer?.play();
+      _startImagePlaybackTicker(nextClip);
+      _syncSoundtrackToVideo();
+      update();
+      return;
+    }
+
     final inactiveSlot = 1 - _activePlayerSlot;
     final inactive = inactiveSlot == 0 ? _playerA : _playerB;
 
-    if (inactive != null && inactive.value.isInitialized && !nextClip.isImage) {
+    if (inactive != null && inactive.value.isInitialized) {
       // Stop current player
       playerController?.pause();
       // Fast A/B Ping-Pong swap
@@ -464,8 +532,10 @@ class VideoEditorController extends GetxController implements GetxService {
     } else {
       selectClip(nextIndex);
       playerController?.play();
+      _isPlaying = true;
     }
     _syncSoundtrackToVideo();
+    update();
   }
 
   void _onPlayerTick() {
@@ -508,7 +578,59 @@ class VideoEditorController extends GetxController implements GetxService {
     update();
   }
 
+  void _startImagePlaybackTicker(TimelineClipModel clip) {
+    _imagePlaybackTimer?.cancel();
+    const intervalMs = 33; // ~30 fps tick
+    _imagePlaybackTimer = Timer.periodic(const Duration(milliseconds: intervalMs), (timer) {
+      if (!_isPlaying || _selectedClipIndex >= _clips.length) {
+        timer.cancel();
+        return;
+      }
+      final curClip = _clips[_selectedClipIndex];
+      if (!curClip.isImage) {
+        timer.cancel();
+        return;
+      }
+
+      final stepMs = (intervalMs * (curClip.speed > 0 ? curClip.speed : 1.0)).round();
+      final targetMs = _currentPosition.inMilliseconds + stepMs;
+      final maxMs = (curClip.length * 1000).round();
+
+      if (targetMs >= maxMs) {
+        if (_isPlayAllSequence && _clips.length > 1) {
+          timer.cancel();
+          final nextIndex = (_selectedClipIndex + 1) % _clips.length;
+          _advanceToNextClip(nextIndex);
+        } else {
+          _currentPosition = Duration.zero;
+          _syncSoundtrackToVideo();
+        }
+      } else {
+        _currentPosition = Duration(milliseconds: targetMs);
+      }
+      update();
+    });
+  }
+
   void togglePlayPause() {
+    if (_clips.isEmpty || _selectedClipIndex >= _clips.length) return;
+    final clip = _clips[_selectedClipIndex];
+
+    if (clip.isImage) {
+      if (_isPlaying) {
+        _imagePlaybackTimer?.cancel();
+        _imagePlaybackTimer = null;
+        _isPlaying = false;
+        _soundtrackPlayer?.pause();
+      } else {
+        _isPlaying = true;
+        _soundtrackPlayer?.play();
+        _startImagePlaybackTicker(clip);
+      }
+      update();
+      return;
+    }
+
     final active = playerController;
     if (active == null || !_isPlayerInitialized) return;
     if (active.value.isPlaying) {
@@ -523,10 +645,20 @@ class VideoEditorController extends GetxController implements GetxService {
   }
 
   void seekToVirtual(Duration position) {
+    if (_clips.isEmpty || _selectedClipIndex >= _clips.length) return;
+    final clip = _clips[_selectedClipIndex];
+
+    if (clip.isImage) {
+      final maxMs = (clip.length * 1000).round();
+      _currentPosition = Duration(milliseconds: position.inMilliseconds.clamp(0, maxMs));
+      _syncSoundtrackToVideo();
+      update();
+      return;
+    }
+
     final active = playerController;
     if (active == null || !_isPlayerInitialized) return;
-    final clip = _clips.isNotEmpty && _selectedClipIndex < _clips.length ? _clips[_selectedClipIndex] : null;
-    final trimMs = clip != null ? (clip.trim * 1000).round() : 0;
+    final trimMs = (clip.trim * 1000).round();
     final targetMs = trimMs + position.inMilliseconds;
     final rawTarget = Duration(milliseconds: targetMs);
     active.seekTo(rawTarget);
@@ -562,6 +694,7 @@ class VideoEditorController extends GetxController implements GetxService {
         addClip(trimmed);
       }
     }
+    loadDrafts();
     loadEditHistory();
   }
 
@@ -572,11 +705,42 @@ class VideoEditorController extends GetxController implements GetxService {
 
   void setAspectRatio(String ratio) {
     _selectedAspectRatio = ratio;
+    _hasCustomAspectRatio = true;
     update();
   }
 
   void setResolution(String res) {
     _selectedResolution = res;
+    _hasCustomResolution = true;
+    update();
+  }
+
+  void autoDetectAspectAndQuality(double width, double height) {
+    if (width <= 0 || height <= 0) return;
+
+    final ratio = width / height;
+    if (ratio < 0.7) {
+      _selectedAspectRatio = '9:16';
+    } else if (ratio >= 0.7 && ratio < 0.88) {
+      _selectedAspectRatio = '4:5';
+    } else if (ratio >= 0.88 && ratio <= 1.15) {
+      _selectedAspectRatio = '1:1';
+    } else if (ratio > 1.15 && ratio < 1.5) {
+      _selectedAspectRatio = '4:3';
+    } else {
+      _selectedAspectRatio = '16:9';
+    }
+
+    final minDimension = width < height ? width : height;
+    if (minDimension >= 1080) {
+      _selectedResolution = '1080';
+    } else if (minDimension >= 720) {
+      _selectedResolution = 'hd';
+    } else if (minDimension >= 480) {
+      _selectedResolution = 'sd';
+    } else {
+      _selectedResolution = 'mobile';
+    }
     update();
   }
 
@@ -904,14 +1068,19 @@ class VideoEditorController extends GetxController implements GetxService {
     }
   }
 
-  Future<String?> uploadMediaFile(String filePath, {required bool isAudio}) async {
+  Future<String?> uploadMediaFile(String filePath, {bool isAudio = false, String? mediaType}) async {
     _isUploading = true;
     update();
 
     try {
+      final ext = filePath.split('.').last.toLowerCase();
+      final isImg = ext == 'png' || ext == 'jpg' || ext == 'jpeg' || ext == 'webp' || ext == 'gif' || ext == 'svg' || ext == 'bmp';
+      final isAud = ext == 'mp3' || ext == 'wav' || ext == 'm4a' || ext == 'aac' || ext == 'ogg' || ext == 'flac';
+      final determinedType = mediaType ?? (isImg ? 'image' : (isAud || isAudio ? 'audio' : 'video'));
+
       final response = await videoEditorRepo.uploadMedia(
         filePath: filePath,
-        mediaType: isAudio ? 'audio' : 'video',
+        mediaType: determinedType,
       );
 
       if (response.statusCode == 200 && response.body != null && response.body['url'] != null) {
@@ -1164,5 +1333,131 @@ class VideoEditorController extends GetxController implements GetxService {
       showCustomSnackBar('delete_clip'.tr, isError: false);
       update();
     }
+  }
+
+  // --- CapCut-Grade Drafts System ---
+  final List<VideoEditorDraftModel> _drafts = [];
+  List<VideoEditorDraftModel> get drafts => _drafts;
+  String? _activeDraftId;
+  String? get activeDraftId => _activeDraftId;
+
+  Future<void> loadDrafts() async {
+    try {
+      final prefs = Get.isRegistered<SharedPreferences>() ? Get.find<SharedPreferences>() : await SharedPreferences.getInstance();
+      final draftJson = prefs.getString('video_editor_drafts');
+      if (draftJson != null && draftJson.isNotEmpty) {
+        final List list = jsonDecode(draftJson);
+        _drafts.clear();
+        for (var item in list) {
+          _drafts.add(VideoEditorDraftModel.fromJson(item));
+        }
+        _drafts.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+        update();
+      }
+    } catch (e) {
+      debugPrint('Error loading video editor drafts: $e');
+    }
+  }
+
+  Future<void> saveCurrentAsDraft() async {
+    if (_clips.isEmpty) return;
+    try {
+      final id = _activeDraftId ?? 'draft_${DateTime.now().millisecondsSinceEpoch}';
+      _activeDraftId = id;
+      final draft = VideoEditorDraftModel(
+        id: id,
+        title: _title.trim().isEmpty ? 'My Video Edit' : _title.trim(),
+        updatedAt: DateTime.now(),
+        clips: _clips.map((c) => c.copyWith()).toList(),
+        textOverlays: List.from(_textOverlays),
+        watermark: _watermark,
+        soundtrackUrl: _soundtrackUrl,
+        soundtrackVolume: _soundtrackVolume,
+        soundtrackStartOffset: _soundtrackStartOffset,
+        soundtrackFade: _soundtrackFade,
+        aspectRatio: _selectedAspectRatio,
+        resolution: _selectedResolution,
+        format: _selectedFormat,
+      );
+
+      final index = _drafts.indexWhere((d) => d.id == id);
+      if (index != -1) {
+        _drafts[index] = draft;
+      } else {
+        _drafts.insert(0, draft);
+      }
+
+      final prefs = Get.isRegistered<SharedPreferences>() ? Get.find<SharedPreferences>() : await SharedPreferences.getInstance();
+      final jsonStr = jsonEncode(_drafts.map((d) => d.toJson()).toList());
+      await prefs.setString('video_editor_drafts', jsonStr);
+      update();
+    } catch (e) {
+      debugPrint('Error saving draft: $e');
+    }
+  }
+
+  void loadDraft(VideoEditorDraftModel draft) {
+    _pushHistory();
+    _activeDraftId = draft.id;
+    _title = draft.title;
+    _clips.clear();
+    _clips.addAll(draft.clips.map((c) => c.copyWith()));
+    _textOverlays.clear();
+    _textOverlays.addAll(draft.textOverlays);
+    _watermark = draft.watermark;
+    _soundtrackUrl = draft.soundtrackUrl;
+    _soundtrackVolume = draft.soundtrackVolume;
+    _soundtrackStartOffset = draft.soundtrackStartOffset;
+    _soundtrackFade = draft.soundtrackFade;
+    _selectedAspectRatio = draft.aspectRatio;
+    _selectedResolution = draft.resolution;
+    _hasCustomAspectRatio = true;
+    _hasCustomResolution = true;
+    _selectedFormat = draft.format;
+    _selectedClipIndex = 0;
+    if (_clips.isNotEmpty) {
+      initPlayerForClip(0);
+    }
+    update();
+  }
+
+  Future<void> deleteDraft(String draftId) async {
+    _drafts.removeWhere((d) => d.id == draftId);
+    if (_activeDraftId == draftId) {
+      _activeDraftId = null;
+    }
+    try {
+      final prefs = Get.isRegistered<SharedPreferences>() ? Get.find<SharedPreferences>() : await SharedPreferences.getInstance();
+      final jsonStr = jsonEncode(_drafts.map((d) => d.toJson()).toList());
+      await prefs.setString('video_editor_drafts', jsonStr);
+    } catch (_) {}
+    update();
+  }
+
+  void resetEditor({bool clearDraft = false}) {
+    _disposePlayer();
+    _imagePlaybackTimer?.cancel();
+    _imagePlaybackTimer = null;
+    _clips.clear();
+    _textOverlays.clear();
+    _watermark = null;
+    _soundtrackUrl = '';
+    _soundtrackVolume = 0.5;
+    _soundtrackStartOffset = 0;
+    _soundtrackFade = 'none';
+    _selectedAspectRatio = '16:9';
+    _selectedResolution = 'hd';
+    _hasCustomAspectRatio = false;
+    _hasCustomResolution = false;
+    _selectedFormat = 'mp4';
+    _title = 'My Video Edit';
+    _selectedClipIndex = 0;
+    _undoStack.clear();
+    _redoStack.clear();
+    _activeDraftId = null;
+    _isPlayerInitialized = false;
+    _isPlaying = false;
+    _currentPosition = Duration.zero;
+    update();
   }
 }

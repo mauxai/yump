@@ -113,7 +113,7 @@ class _VideoMultiTrackTimelineWidgetState extends State<VideoMultiTrackTimelineW
 
         final double zoom = ctrl.timelineZoom;
         final double totalDuration = ctrl.totalTimelineDuration > 0 ? ctrl.totalTimelineDuration : 10.0;
-        final double timelineWidth = (totalDuration + 5) * zoom;
+        final double timelineWidth = (totalDuration + 8) * zoom;
         final double playheadX = ctrl.globalPlayheadSeconds * zoom;
 
         // Auto-scroll follow playhead while playing
@@ -336,7 +336,7 @@ class _VideoMultiTrackTimelineWidgetState extends State<VideoMultiTrackTimelineW
                         ),
                         // Track 3: Audio
                         Container(
-                          height: 34,
+                          height: 38,
                           alignment: Alignment.center,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -458,101 +458,233 @@ class _VideoMultiTrackTimelineWidgetState extends State<VideoMultiTrackTimelineW
                                     ),
                                     child: Row(
                                       crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: clips.asMap().entries.map((entry) {
-                                        final i = entry.key;
-                                        final clip = entry.value;
-                                        final isSelected = ctrl.selectedClipIndex == i;
-                                        final double clipWidth = clip.length * zoom;
+                                      children: [
+                                        ...clips.asMap().entries.map((entry) {
+                                          final i = entry.key;
+                                          final clip = entry.value;
+                                          final isSelected = ctrl.selectedClipIndex == i;
+                                          final double clipWidth = clip.length * zoom;
 
-                                        return Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            _buildInteractiveClipContainer(
-                                              context: context,
-                                              ctrl: ctrl,
-                                              index: i,
-                                              clip: clip,
-                                              isSelected: isSelected,
-                                              clipWidth: clipWidth,
-                                              zoom: zoom,
-                                            ),
+                                          return Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              _buildInteractiveClipContainer(
+                                                context: context,
+                                                ctrl: ctrl,
+                                                index: i,
+                                                clip: clip,
+                                                isSelected: isSelected,
+                                                clipWidth: clipWidth,
+                                                zoom: zoom,
+                                              ),
 
-                                            // In-between Transition Badge
-                                            if (i < clips.length - 1)
-                                              GestureDetector(
-                                                onTap: () => VideoClipEditorDialog.show(context, i + 1, clips[i + 1]),
-                                                child: Container(
-                                                  margin: const EdgeInsets.symmetric(horizontal: 2),
-                                                  padding: const EdgeInsets.all(3),
-                                                  decoration: BoxDecoration(
-                                                    color: Theme.of(context).scaffoldBackgroundColor,
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
+                                              // In-between Transition Badge
+                                              if (i < clips.length - 1)
+                                                GestureDetector(
+                                                  onTap: () => VideoClipEditorDialog.show(context, i + 1, clips[i + 1]),
+                                                  child: Container(
+                                                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                                                    padding: const EdgeInsets.all(3),
+                                                    decoration: BoxDecoration(
+                                                      color: Theme.of(context).scaffoldBackgroundColor,
+                                                      shape: BoxShape.circle,
+                                                      border: Border.all(
+                                                        color: clips[i + 1].transitionIn != null
+                                                            ? AppColors.gradientStart
+                                                            : Theme.of(context).colorScheme.outline,
+                                                      ),
+                                                    ),
+                                                    child: Icon(
+                                                      clips[i + 1].transitionIn != null ? Icons.bolt_rounded : Icons.link,
+                                                      size: 10,
                                                       color: clips[i + 1].transitionIn != null
                                                           ? AppColors.gradientStart
-                                                          : Theme.of(context).colorScheme.outline,
+                                                          : Theme.of(context).colorScheme.onSurfaceVariant,
                                                     ),
                                                   ),
-                                                  child: Icon(
-                                                    clips[i + 1].transitionIn != null ? Icons.bolt_rounded : Icons.link,
-                                                    size: 10,
-                                                    color: clips[i + 1].transitionIn != null
-                                                        ? AppColors.gradientStart
-                                                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                                                ),
+                                            ],
+                                          );
+                                        }),
+
+                                        // CapCut-style "+ Add" button right on the Video Track
+                                        GestureDetector(
+                                          onTap: () => AddClipBottomSheet.show(context),
+                                          child: Container(
+                                            margin: const EdgeInsets.only(left: 8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                            decoration: BoxDecoration(
+                                              color: Theme.of(context).cardColor,
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: AppColors.gradientStart,
+                                                width: 1.5,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.gradientStart.withValues(alpha: 0.15),
+                                                  blurRadius: 4,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.add_rounded, size: 18, color: AppColors.gradientStart),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'add_clip'.tr.isNotEmpty ? 'add_clip'.tr : 'Add',
+                                                  style: robotoBold.copyWith(
+                                                    fontSize: 11,
+                                                    color: AppColors.gradientStart,
                                                   ),
                                                 ),
-                                              ),
-                                          ],
-                                        );
-                                      }).toList(),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
 
-                                  // Layer 4: Track 3 - Audio Soundtrack (34px)
+                                  // Layer 4: Track 3 - Audio (Original Audio + Soundtrack) (38px)
                                   Container(
-                                    height: 34,
+                                    height: 38,
                                     width: timelineWidth,
                                     alignment: Alignment.centerLeft,
-                                    child: ctrl.soundtrackUrl.isNotEmpty
-                                        ? Stack(
-                                            children: [
+                                    child: Stack(
+                                      children: [
+                                        // Original Clip Audio Blocks
+                                        ...() {
+                                          double accumulated = 0.0;
+                                          final List<Widget> audioBars = [];
+                                          for (int i = 0; i < ctrl.clips.length; i++) {
+                                            final clip = ctrl.clips[i];
+                                            final startX = accumulated * zoom;
+                                            final width = (clip.length * zoom).clamp(24.0, 5000.0);
+                                            final clipIndex = i;
+                                            accumulated += clip.length;
+
+                                            if (clip.isImage) continue;
+
+                                            final isSelected = ctrl.selectedClipIndex == clipIndex;
+                                            final isMuted = ctrl.isPlayerMuted || (clip.volume != null && clip.volume! <= 0.01);
+                                            final volPercent = ((clip.volume ?? 1.0) * 100).round();
+
+                                            audioBars.add(
                                               Positioned(
-                                                left: ctrl.soundtrackStartOffset * zoom,
-                                                top: 4,
-                                                bottom: 4,
-                                                width: (totalDuration * zoom).clamp(50.0, 5000.0),
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.teal.withValues(alpha: 0.7),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: Colors.tealAccent, width: 1),
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(Icons.graphic_eq_rounded, size: 14, color: Colors.white),
-                                                      const SizedBox(width: 4),
-                                                      Expanded(
-                                                        child: Text(
-                                                          '${ctrl.soundtrackUrl.split('/').last} (${(ctrl.soundtrackVolume * 100).round()}%)',
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          style: robotoMedium.copyWith(color: Colors.white, fontSize: 9),
-                                                        ),
+                                                left: startX,
+                                                top: 2,
+                                                bottom: 2,
+                                                width: width,
+                                                child: GestureDetector(
+                                                  onTap: () => ctrl.selectClip(clipIndex),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: isSelected
+                                                          ? const Color(0xFF1E293B)
+                                                          : const Color(0xFF0F172A),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                      border: Border.all(
+                                                        color: isSelected
+                                                            ? Colors.cyanAccent
+                                                            : Colors.teal.withValues(alpha: 0.5),
+                                                        width: isSelected ? 1.5 : 1,
                                                       ),
-                                                    ],
+                                                    ),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                                                          size: 13,
+                                                          color: isMuted ? Colors.redAccent : Colors.cyanAccent,
+                                                        ),
+                                                        const SizedBox(width: 4),
+                                                        Expanded(
+                                                          child: Text(
+                                                            '#${clipIndex + 1} Audio ${isMuted ? '(Muted)' : '($volPercent%)'}',
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                            style: robotoMedium.copyWith(
+                                                              color: Colors.white,
+                                                              fontSize: 9,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        // CapCut audio waveform simulation bars
+                                                        if (width > 60)
+                                                          Padding(
+                                                            padding: const EdgeInsets.only(left: 2),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              children: [4.0, 8.0, 14.0, 10.0, 6.0, 12.0, 8.0, 4.0].map((h) {
+                                                                return Container(
+                                                                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                                                                  width: 2,
+                                                                  height: isMuted ? 2 : h,
+                                                                  decoration: BoxDecoration(
+                                                                    color: isMuted
+                                                                        ? Colors.white24
+                                                                        : Colors.cyanAccent.withValues(alpha: 0.75),
+                                                                    borderRadius: BorderRadius.circular(1),
+                                                                  ),
+                                                                );
+                                                              }).toList(),
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ],
-                                          )
-                                        : Padding(
+                                            );
+                                          }
+                                          return audioBars;
+                                        }(),
+
+                                        // Soundtrack Overlay (if added)
+                                        if (ctrl.soundtrackUrl.isNotEmpty)
+                                          Positioned(
+                                            left: ctrl.soundtrackStartOffset * zoom,
+                                            top: 2,
+                                            bottom: 2,
+                                            width: (totalDuration * zoom).clamp(50.0, 5000.0),
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: Colors.purple.withValues(alpha: 0.85),
+                                                borderRadius: BorderRadius.circular(4),
+                                                border: Border.all(color: Colors.purpleAccent, width: 1.2),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Icons.music_note_rounded, size: 14, color: Colors.white),
+                                                  const SizedBox(width: 4),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Music: ${ctrl.soundtrackUrl.split('/').last} (${(ctrl.soundtrackVolume * 100).round()}%)',
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: robotoMedium.copyWith(color: Colors.white, fontSize: 9),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+
+                                        // Empty state when no clips and no soundtrack
+                                        if (ctrl.clips.isEmpty && ctrl.soundtrackUrl.isEmpty)
+                                          Padding(
                                             padding: const EdgeInsets.only(left: 8),
                                             child: Text(
                                               'no_soundtrack'.tr,
                                               style: robotoRegular.copyWith(fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
                                             ),
                                           ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
